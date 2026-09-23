@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "metadata": {
+    "firstMonth": "2025-09",
+    "lastMonth": "2026-08",
+    "mappingNote": "Illustrative calendar mapping: M1 is September 2025 through M12 in August 2026; M7 is March 2026. The paper uses relative months. M1-M6 already include AI use.",
+    "tokenNote": "Input plus output includes failed and retried attempts; cached input is part of input, not an additional category.",
+    "limitations": ["Historical human effort unavailable", "Historical work start times unavailable", "Production bugs lack release linkage"]
+  },
+  "rows": [
+    { "month": "M1", "approved": 18, "commits": 100, "testTouches": 12, "bugs": 4, "tokensMillions": 8, "toolSpendEur": 80 },
+    { "month": "M2", "approved": 22, "commits": 100, "testTouches": 14, "bugs": 5, "tokensMillions": 9, "toolSpendEur": 90 },
+    { "month": "M3", "approved": 20, "commits": 100, "testTouches": 15, "bugs": 3, "tokensMillions": 10, "toolSpendEur": 100 },
+    { "month": "M4", "approved": 24, "commits": 100, "testTouches": 16, "bugs": 4, "tokensMillions": 11, "toolSpendEur": 110 },
+    { "month": "M5", "approved": 19, "commits": 100, "testTouches": 14, "bugs": 5, "tokensMillions": 10, "toolSpendEur": 100 },
+    { "month": "M6", "approved": 23, "commits": 100, "testTouches": 19, "bugs": 3, "tokensMillions": 12, "toolSpendEur": 120 },
+    { "month": "M7", "approved": 24, "commits": 100, "testTouches": 20, "bugs": 3, "tokensMillions": 12, "toolSpendEur": 120 },
+    { "month": "M8", "approved": 27, "commits": 100, "testTouches": 22, "bugs": 5, "tokensMillions": 14, "toolSpendEur": 140 },
+    { "month": "M9", "approved": 25, "commits": 100, "testTouches": 24, "bugs": 4, "tokensMillions": 15, "toolSpendEur": 150 },
+    { "month": "M10", "approved": 30, "commits": 100, "testTouches": 25, "bugs": 3, "tokensMillions": 16, "toolSpendEur": 160 },
+    { "month": "M11", "approved": 28, "commits": 100, "testTouches": 27, "bugs": 5, "tokensMillions": 16, "toolSpendEur": 160 },
+    { "month": "M12", "approved": 34, "commits": 100, "testTouches": 32, "bugs": 4, "tokensMillions": 17, "toolSpendEur": 170 }
+  ]
+}

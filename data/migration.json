@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "scope": "Separate illustrative migration; not part of the API team report",
+  "period": "12 weeks",
+  "currency": "USD",
+  "totalIncrementalCostComplete": true,
+  "assumptions": [
+    "Supplier order cancelled rather than deferred after equivalent scope was accepted",
+    "Finance verified the cancellation, with no fee or replacement supplier spend",
+    "Incremental internal effort and shared subscriptions are allocated once",
+    "No displaced internal commitment requires replacement work"
+  ],
+  "claims": [
+    { "id": "MIG-01", "category": "avoided-cost", "amount": 35000, "verificationStatus": "verified", "supportingSource": "Approved supplier order, cancellation and scope acceptance", "verifierRole": "Finance", "allocationBasis": "One cancelled order", "cancellationApproved": true, "scopeAccepted": true },
+    { "id": "MIG-COST-01", "category": "cost", "amount": 4000, "verificationStatus": "verified", "supportingSource": "Incremental tool and platform invoices", "verifierRole": "Finance", "allocationBasis": "Subscriptions allocated once" },
+    { "id": "MIG-COST-02", "category": "cost", "amount": 6000, "verificationStatus": "verified", "supportingSource": "Integration and enablement records", "verifierRole": "Finance", "allocationBasis": "75 incremental hours at USD 80 per hour" },
+    { "id": "MIG-COST-03", "category": "cost", "amount": 8000, "verificationStatus": "verified", "supportingSource": "Internal delivery, review and correction records", "verifierRole": "Finance", "allocationBasis": "100 incremental hours at USD 80 per hour" },
+    { "id": "MIG-COST-04", "category": "cost", "amount": 2000, "verificationStatus": "verified", "supportingSource": "Governance and assurance records", "verifierRole": "Finance", "allocationBasis": "25 incremental hours at USD 80 per hour" },
+    { "id": "MIG-DUP-01", "category": "overlapping-benefit", "amount": 2400, "verificationStatus": "excluded", "supportingSource": "Unrealized saved-hours estimate", "verifierRole": "Finance", "allocationBasis": "30 hours at USD 80 per hour; no separate outcome or removed cost", "overlapsWith": "MIG-01" }
+  ]
+}
