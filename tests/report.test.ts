@@ -104,7 +104,7 @@ test('thirteen months with one approval per month do not claim increased accepte
 test('dashboard follows the blueprint hierarchy with a stacked chart and print layout', () => {
   const html = renderHtml(buildReport(loadSynthetic()));
   assert.match(html, /<header[^>]*>[\s\S]*<h1>/);
-  assert.match(html, /class="ai-banner"/);
+  assert.doesNotMatch(html, /ai-banner|More systematic AI use from <b>/);
   assert.match(html, /class="kpis"/);
   assert.match(html, /class="chart-grid"/);
   assert.match(html, /<svg[^>]*id="type-chart"/);
