@@ -9,7 +9,7 @@ An optional `context` object supplies the report profile, not calculated finding
   "owner": "Service lead",
   "updatedAt": "2026-04-02",
   "description": "Example checkout service",
-  "includedWork": "Parent Stories and Tasks approved for release",
+  "includedWork": "Eligible Stories and Tasks approved for release",
   "excludedWork": "Emergency fixes",
   "aiUse": "Known approved AI-assisted steps; unknown exposure stays unknown",
   "concurrentChanges": "Staffing and tool changes under review",

@@ -315,14 +315,14 @@ export function aggregate(bundle: SourceBundle): OperationalReport {
     : Object.values(diagnostics).some(value => value === null)
       ? 'partial' : 'available';
   const definitions = [
-    { metric: 'approvedParents', definition: 'Eligible parent Story or Task at first release approval; no children, defects or emergency fixes.', source: 'tickets' },
-    { metric: 'createdParents', definition: 'Eligible parent Stories and Tasks grouped by creation month, whether approved or open.', source: 'tickets' },
+    { metric: 'approvedParents', definition: 'Eligible Story or Task at first release approval; no children, defects or emergency fixes.', source: 'tickets' },
+    { metric: 'createdParents', definition: 'Eligible Stories and Tasks grouped by creation month, whether approved or open; sub-tasks excluded.', source: 'tickets' },
     { metric: 'incomingBugs', definition: 'Confirmed production Bug tickets grouped by creation month; unknown environments are excluded and reported separately.', source: 'tickets' },
     { metric: 'commits', definition: 'Distinct non-merge, non-bot commits by month.', source: 'commits' },
     { metric: 'testTouchShare', definition: 'Eligible commits touching a tests/ or __tests__/ path, a .test/.spec JS/TS file, a _test.go file or a test_*.py file, once per commit, divided by all eligible commits.', source: 'commits' },
     { metric: 'tokens', definition: 'Input plus output tokens across all attempts; cached input is already part of input.', source: 'usage' },
     { metric: 'toolSpend', definition: 'Sum of recorded tool charges in report currency, not total AI cost.', source: 'charges' },
-    { metric: 'toolSpendPerApprovedParent', definition: 'Recorded consumption, allocated subscriptions and other tool charges divided by approved parents when billing and ticket coverage are complete.', source: 'charges' },
+    { metric: 'toolSpendPerApprovedParent', definition: 'Recorded consumption, allocated subscriptions and other tool charges divided by approved Stories and Tasks when billing and ticket coverage are complete.', source: 'charges' },
     { metric: 'totalAiCost', definition: 'Tool charges plus human review, correction, enablement, governance and platform costs; unavailable for the API team.', source: 'total-ai-cost' },
     { metric: 'roi', definition: 'Net benefit divided by complete total AI cost over the same period; unassessed for the API team.', source: 'total-ai-cost' },
     { metric: 'leadTime', definition: 'Mean calendar days from observed start to first release approval, only with complete start events.', source: 'start-times' },
@@ -371,7 +371,7 @@ export function aggregate(bundle: SourceBundle): OperationalReport {
       ? 'Complete ticket coverage is required for lead time.'
       : status('start-times') !== 'available'
         ? coverage.find(entry => entry.source === 'start-times')?.reason || 'Start-time coverage unavailable.'
-        : `Start times missing for ${missingStarts} approved parents; ${approvedTickets.length} approved parents in scope.` });
+        : `Start times missing for ${missingStarts} approved Stories and Tasks; ${approvedTickets.length} approved Stories and Tasks in scope.` });
   }
   evidenceGaps.push({ metric: 'humanEffort', reason: coverage.find(entry => entry.source === 'historical-effort')?.reason ||
     'Observed non-overlapping person-minutes by activity are not available.' });

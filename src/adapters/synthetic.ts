@@ -132,8 +132,8 @@ export function loadSynthetic(): SourceBundle {
     context: {
       owner: 'Engineering lead (fictional)', updatedAt: '2026-09-01',
       description: 'Fictional API team maintaining backward-compatible endpoint changes.',
-      includedWork: 'Parent Stories and Tasks at first release approval; eligible non-merge commits and incoming production bugs.',
-      excludedWork: 'Emergency fixes, larger contract changes, defects and sub-tasks are excluded from approved-parent output.',
+      includedWork: 'Eligible Stories and Tasks at first release approval; eligible non-merge commits and incoming production bugs.',
+      excludedWork: 'Emergency fixes, larger contract changes, defects and sub-tasks are excluded from approved Stories and Tasks.',
       aiUse: 'Agents prepare endpoint changes. Use becomes more systematic in M7; earlier AI use is not excluded. AI exposure per change is unknown.',
       concurrentChanges: 'Staffing, process and tool/model version changes were not recorded for these windows.',
       question: 'What changed in delivery, quality, workload and spending between M1-M6 and M7-M12?',
@@ -149,7 +149,7 @@ export function loadSynthetic(): SourceBundle {
     coverage: [
       { source: 'tickets', status: 'available', eligible: approvedCount + 1,
         extracted: tickets.length, linked: approvedCount, excluded: bugCount + 1,
-        missing: 0, reason: 'One eligible parent is still open; bugs and the child are excluded from approved output.' },
+        missing: 0, reason: 'One eligible Story is still open; bugs and the child are excluded from approved output.' },
       available('commits', commits.length),
       { ...available('usage', usage.length), linked: 0,
         reason: 'Monthly token totals are available; model, token categories, attempts and work-item links are unavailable.' },

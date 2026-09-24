@@ -157,7 +157,7 @@ test('overview totals qualify partial ticket and Git coverage and context text i
   source.coverage = source.coverage.map(entry => entry.source === 'tickets' || entry.source === 'commits'
     ? { ...entry, status: 'partial', reason: 'Incomplete export.' } : entry);
   const html = renderHtml(buildReport(source));
-  assert.match(html, /Approved parents<\/div><div class="kpi-value">294 \(partial\)/);
+  assert.match(html, /Approved Stories and Tasks<\/div><div class="kpi-value">294 \(partial\)/);
   assert.match(html, /Git commits<\/div><div class="kpi-value">1,200 \(partial\)/);
   assert.match(html, /&lt;\/script&gt;&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
   assert.doesNotMatch(html, /<script>alert\(1\)<\/script>/);
@@ -169,13 +169,21 @@ test('overview distinguishes incomplete totals from known zero and unavailable',
     coverage: source.coverage.map(entry => entry.source === 'tickets' || entry.source === 'commits'
       ? { ...entry, status: 'partial' as const, reason: 'Import incomplete.' } : entry),
   }));
-  assert.match(partial, /Approved parents<\/div><div class="kpi-value">0 \(partial\)/);
+  assert.match(partial, /Approved Stories and Tasks<\/div><div class="kpi-value">0 \(partial\)/);
   assert.match(partial, /Git commits<\/div><div class="kpi-value">0 \(partial\)/);
   const absent = renderHtml(buildReport({ ...source, commits: undefined,
     coverage: source.coverage.map(entry => entry.source === 'commits'
       ? { ...entry, status: 'unavailable' as const, reason: 'Missing Git export.' } : entry),
   }));
   assert.match(absent, /Git commits<\/div><div class="kpi-value">Unavailable/);
+});
+
+test('the report names approved Stories and Tasks without hiding the counting rule', () => {
+  const html = renderHtml(buildReport(loadSynthetic()));
+  assert.match(html, /<span class="chart-title">Approved Stories and Tasks<\/span>/);
+  assert.match(html, /<caption>Approved Stories and Tasks by month, items<\/caption>/);
+  assert.match(html, /Spend \/ approved Story or Task/);
+  assert.match(html, /Eligible Story or Task at first release approval; no children, defects or emergency fixes/);
 });
 
 test('migration case is temporarily hidden from the report and navigation', () => {
@@ -395,7 +403,7 @@ test('absent ticket coverage does not display open work or missing starts as zer
   source.coverage = source.coverage.map(entry => entry.source === 'tickets'
     ? { ...entry, status: 'unavailable', reason: 'Tickets not supplied' } : entry);
   const html = renderHtml(buildReport(source));
-  assert.match(html, /Open parents: Unavailable/);
+  assert.match(html, /Open Stories and Tasks: Unavailable/);
   assert.match(html, /missing start times: Unavailable/);
 });
 

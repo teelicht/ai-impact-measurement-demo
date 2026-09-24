@@ -19,10 +19,10 @@ export function buildReport(bundle: SourceBundle): ReportView {
   const examples = (bundle.tickets ?? []).filter(ticket =>
     ticket.id === 'API-101' || ticket.id === 'API-102' || ticket.parentId || ticket.status === 'open')
     .slice(0, 8).map(ticket => ({ id: ticket.id, kind: ticket.type,
-      treatment: ticket.parentId ? 'Child: excluded from approved parent count'
+      treatment: ticket.parentId ? 'Child: excluded from approved Stories and Tasks count'
         : ticket.status === 'open' ? 'Open: not approved'
           : ticket.approvals.length > 1 ? 'First approval only; later release link excluded'
-            : 'Eligible parent: counted at first release approval',
+            : 'Eligible Story or Task: counted at first release approval',
     }));
   return {
     operational,
@@ -30,7 +30,7 @@ export function buildReport(bundle: SourceBundle): ReportView {
     actions: [
       { owner: 'Service owner', action: 'Record approved controls, available capacity, spending limits and accountable owners.',
         condition: 'Check guardrails before changing the scope of AI-assisted work.' },
-      { owner: 'Delivery lead', action: 'Capture start and first release approval for every eligible parent, including open work.',
+      { owner: 'Delivery lead', action: 'Capture start and first release approval for every eligible Story or Task, including open work.',
         condition: 'Evaluate lead time only after coverage is checked.' },
       { owner: 'Finance and engineering', action: 'Record non-overlapping review, correction, enablement and platform costs; reconcile shared charges once.',
         condition: 'Do not calculate API-team ROI from tool spend alone.' },
