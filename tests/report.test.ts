@@ -186,6 +186,20 @@ test('the report names approved Stories and Tasks without hiding the counting ru
   assert.match(html, /Eligible Story or Task at first release approval; no children, defects or emergency fixes/);
 });
 
+test('cost presentation labels currency and links monthly tokens to an optional charge breakdown', () => {
+  const html = renderHtml(buildReport(loadSynthetic()));
+  const cost = html.split('<section id="cost">')[1]?.split('<section id="ledger">')[0];
+  assert.ok(cost);
+  assert.match(cost, /<caption>Recorded tool charges by month, EUR<\/caption>[\s\S]*<th scope="col">Recorded tool charges \(EUR\)<\/th>[\s\S]*<td>EUR 120<\/td>/);
+  assert.match(cost, /<details class="cost-composition"><summary>Monthly cost composition and token use<\/summary>/);
+  assert.doesNotMatch(cost, /<details class="cost-composition" open/);
+  assert.match(cost, /<th scope="col">Tokens \(millions\)<\/th>/);
+  assert.match(cost, /<th scope="col">Recorded tool charges \(EUR\)<\/th>/);
+  assert.match(cost, /<th scope="row">M7<\/th><td>12<\/td><td>subscription: EUR 30; consumption: EUR 90<\/td><td>EUR 120<\/td><td>EUR 5<\/td>/);
+  assert.match(cost, /monthly token totals alone cannot explain them or establish a per-token price/i);
+  assert.match(cost, /illustrative[\s\S]*not (?:a reconstructed invoice|computed from tokens)/i);
+});
+
 test('migration case is temporarily hidden from the report and navigation', () => {
   for (const source of [loadSynthetic(), { ...loadSynthetic(), sourceKind: 'configured' as const }]) {
     const html = renderHtml(buildReport(source));
