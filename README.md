@@ -11,9 +11,9 @@ npm ci
 npm run demo
 ```
 
-Open `output/api-team.html` directly in a browser. The same run writes `output/api-team-monthly.csv` and `output/api-team-evidence.json`. The HTML is self-contained: it does not request a Jira service, Git host, CSS, chart library, or remote images. All three artifacts come from the same validated report model.
+Open `output/api-team.html` directly in a browser. The same run writes `output/api-team-evidence.json`. The HTML is self-contained: it does not request a Jira service, Git host, CSS, chart library, or remote images. Both artifacts come from the same validated report model.
 
-The CSV has `month` and `label`, then each numeric measure followed immediately by its `<measure>Status` column. Parse columns by header name (CSV quoting applies), not by position. Status is `available`, `partial`, or `unavailable`: a numeric value with `partial` is incomplete, a blank value with `unavailable` is not zero, and a numeric zero with `available` is an observed zero. The evidence JSON includes `monthly` rows with the same numbers and per-row `measureStatus`, plus source coverage, exclusions, period boundaries and unassessed outcomes. Join CSV and JSON monthly rows by `month`; for a single-month report, `periods` is empty but `monthly` still contains that month and its statuses.
+The evidence JSON includes `monthly` rows with per-row `measureStatus`, plus source coverage, exclusions, period boundaries and unassessed outcomes. Status is `available`, `partial`, or `unavailable`: a numeric value with `partial` is incomplete, a null value with `unavailable` is not zero, and a numeric zero with `available` is an observed zero. For a single-month report, `periods` is empty but `monthly` still contains that month and its statuses.
 
 To select your own sources and output directory:
 
@@ -21,7 +21,7 @@ To select your own sources and output directory:
 npm run report -- --config ./examples/config.json --out ./output/local
 ```
 
-This produces `output/local/example-api-team.html`, `example-api-team-monthly.csv`, and `example-api-team-evidence.json` for the example scope. Configured filenames use a lowercase scope slug: runs of non-ASCII letters, punctuation, spaces and path separators become `-`, leading/trailing `-` are removed, and a scope without ASCII letters or digits uses `team-report`. The synthetic default keeps `api-team.*`. Config and input paths are local; relative input paths resolve from the config file. `--out` names a directory and defaults to `output`; repeating `--out` is an error, even when the first value is `output`. Without `--config`, `npm run report` uses the synthetic records. With `--config`, omitted sources remain unavailable; a missing or invalid configured source fails with a nonzero exit and never falls back to the default report. The example config has only one month of tickets, not a twelve-month comparison. Set complete calendar-month bounds for the period you actually have; periods split the selected months into two groups, and a single month has no comparison.
+This produces `output/local/example-api-team.html` and `output/local/example-api-team-evidence.json` for the example scope. Configured filenames use a lowercase scope slug: runs of non-ASCII letters, punctuation, spaces and path separators become `-`, leading/trailing `-` are removed, and a scope without ASCII letters or digits uses `team-report`. The synthetic default keeps `api-team.*`. Config and input paths are local; relative input paths resolve from the config file. `--out` names a directory and defaults to `output`; repeating `--out` is an error, even when the first value is `output`. Without `--config`, `npm run report` uses the synthetic records. With `--config`, omitted sources remain unavailable; a missing or invalid configured source fails with a nonzero exit and never falls back to the default report. The example config has only one month of tickets, not a twelve-month comparison. Set complete calendar-month bounds for the period you actually have; periods split the selected months into two groups, and a single month has no comparison.
 
 ## What the dashboard shows
 

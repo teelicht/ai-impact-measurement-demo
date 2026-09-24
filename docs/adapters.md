@@ -20,7 +20,7 @@ An optional `context` object supplies the report profile, not calculated finding
 }
 ```
 
-`updatedAt` is the report owner's update date, not `extractedAt`, which describes data extraction. All fields are optional; supplied strings must be nonblank and dates valid. Repository labels are inert display names, not Git paths, URLs or links. Do not copy real repository names or team descriptions into the synthetic default. The evidence JSON includes the supplied context; the monthly CSV contains numerical measures and statuses only.
+`updatedAt` is the report owner's update date, not `extractedAt`, which describes data extraction. All fields are optional; supplied strings must be nonblank and dates valid. Repository labels are inert display names, not Git paths, URLs or links. Do not copy real repository names or team descriptions into the synthetic default. The evidence JSON includes the supplied context and monthly numerical measures with their statuses.
 
 ## Local Git history
 

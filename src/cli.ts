@@ -20,22 +20,11 @@ function options(args: string[]): { config?: string; out: string } {
   return { config, out };
 }
 
-function csvCell(value: string | number | null): string {
-  const content = value === null ? '' : String(value);
-  return /[",\r\n]/.test(content) ? `"${content.replaceAll('"', '""')}"` : content;
-}
-
 async function main(): Promise<void> {
   const { config, out } = options(process.argv.slice(2));
   const bundle = config ? await loadConfigured(resolve(config)) : loadSynthetic();
   const view = buildReport(bundle);
   const report = view.operational;
-  const measures = ['approvedParents', 'createdParents', 'openParents', 'incomingBugs',
-    'commits', 'testTouchCommits', 'tokens', 'toolSpend'] as const;
-  const columns = ['month', 'label', ...measures.flatMap(measure => [measure, `${measure}Status`])];
-  const csv = [columns.join(','), ...report.monthly.map(row =>
-    [row.month, row.label, ...measures.flatMap(measure => [row[measure], row.measureStatus[measure]])]
-      .map(csvCell).join(','))].join('\n') + '\n';
   const evidence = {
     scope: report.scope, sourceKind: report.sourceKind, startDate: report.startDate,
     context: view.context ?? null,
@@ -51,7 +40,6 @@ async function main(): Promise<void> {
   mkdirSync(directory, { recursive: true });
   for (const [name, content] of [
     [`${base}.html`, renderHtml(view)],
-    [`${base}-monthly.csv`, csv],
     [`${base}-evidence.json`, JSON.stringify(evidence, null, 2) + '\n'],
   ]) {
     const path = join(directory, name);
