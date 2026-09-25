@@ -7,10 +7,12 @@
     "build": "tsc -p tsconfig.json",
     "test": "npm run build && node --test dist/tests/*.test.js",
     "demo": "npm run build && node dist/src/cli.js --out output",
-    "report": "npm run build && node dist/src/cli.js"
+    "report": "npm run build && node dist/src/cli.js",
+    "lint": "biome check --write"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "@biomejs/biome": "2.5.13"
   }
 }
