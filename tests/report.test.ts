@@ -115,7 +115,11 @@ test('dashboard follows the blueprint hierarchy with a stacked chart and print l
   assert.equal((html.match(/class="chart" data-field="/g) ?? []).length, 5);
   assert.match(html, /<caption>Created tickets by month and type<\/caption>/);
   assert.match(html, /<th scope="row">M1 \(2025-09\)<\/th><td>4<\/td>/);
-  assert.match(html, /M1-M6 already includes AI use/);
+  assert.match(html, /Earlier reporting period \(M1-M6\) and more-systematic-use period \(M7-M12\)/);
+  assert.match(html, /AI use per change is unknown/);
+  assert.doesNotMatch(html, /M1-M6 already includes? AI use/);
+  assert.match(html, /More systematic use from/);
+  assert.doesNotMatch(html, /Increased AI use from/);
   assert.match(html, /class="split-marker"/);
   assert.doesNotMatch(html, /class="chart" data-field="[^"]+" aria-hidden="true"/);
   assert.doesNotMatch(html, /\bp\s*[<=>]\s*0\.\d|Welch|statistically significant/i);

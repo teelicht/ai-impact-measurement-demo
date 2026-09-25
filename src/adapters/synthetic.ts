@@ -134,7 +134,7 @@ export function loadSynthetic(): SourceBundle {
       description: 'Fictional API team maintaining backward-compatible endpoint changes.',
       includedWork: 'Eligible Stories and Tasks at first release approval; eligible non-merge commits and incoming production bugs.',
       excludedWork: 'Emergency fixes, larger contract changes, defects and sub-tasks are excluded from approved Stories and Tasks.',
-      aiUse: 'Agents prepare endpoint changes. Use becomes more systematic in M7; earlier AI use is not excluded. AI exposure per change is unknown.',
+      aiUse: 'Agents prepare endpoint changes more systematically from M7. Both periods record AI tool consumption and charges, but AI use per change is unknown.',
       concurrentChanges: 'Staffing, process and tool/model version changes were not recorded for these windows.',
       question: 'What changed in delivery, quality, workload and spending between M1-M6 and M7-M12?',
       controls: 'Guardrail status and review capacity are not assessed from these records.',

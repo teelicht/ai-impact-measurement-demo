@@ -3,7 +3,7 @@
   "metadata": {
     "firstMonth": "2025-09",
     "lastMonth": "2026-08",
-    "mappingNote": "Illustrative calendar mapping: M1 is September 2025 through M12 in August 2026; M7 is March 2026. The paper uses relative months. M1-M6 already include AI use.",
+    "mappingNote": "Illustrative calendar mapping: M1 is September 2025 through M12 in August 2026; M7 is March 2026. The paper uses relative months. Both periods record AI tool consumption and charges, but use per change is unknown.",
     "tokenNote": "Input plus output includes failed and retried attempts; cached input is part of input, not an additional category.",
     "limitations": ["Historical human effort unavailable", "Historical work start times unavailable", "Production bugs lack release linkage"]
   },
