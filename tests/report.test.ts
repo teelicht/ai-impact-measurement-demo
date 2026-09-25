@@ -20,6 +20,8 @@ const withoutUsage = (source: SourceBundle): SourceBundle => ({ ...source, usage
 test('the default overview is a synthetic report profile, not a decision verdict', () => {
   const view = buildReport(loadSynthetic());
   const html = renderHtml(view);
+  assert.match(html, /<title>AI Impact Report \| Fictional API team<\/title>/);
+  assert.match(html, /<h1>AI Impact Report<\/h1><p class="sub">Fictional API team/);
   assert.equal(Object.hasOwn(view, 'decision'), false);
   assert.match(html, /<h2>Overview<\/h2>[\s\S]*Team and service[\s\S]*AI use and context[\s\S]*Repository evidence/);
   assert.match(html, /<h2>Report profile<\/h2>/);
@@ -39,6 +41,15 @@ test('the default overview is a synthetic report profile, not a decision verdict
   assert.ok(html.indexOf('<section id="profile">') < html.indexOf('<section id="impact">'));
   assert.ok(html.indexOf('<section id="impact">') < html.indexOf('<section id="issue-volume">'));
   assert.match(html, /href="#profile">Report profile<\/a><a href="#impact">Impact<\/a>/);
+});
+
+test('next actions show a review date without inventing one', () => {
+  const view = buildReport(loadSynthetic());
+  const actions = renderHtml(view).split('<section id="actions">')[1]?.split('</section>')[0];
+  assert.ok(actions);
+  assert.match(actions, /<th scope="col">Owner<\/th><th scope="col">Action<\/th><th scope="col">Condition<\/th><th scope="col">Review Date<\/th>/);
+  assert.equal((actions.match(/<td>Not set<\/td>/g) ?? []).length, view.actions.length);
+  assert.ok(view.actions.every(item => 'reviewDate' in item && item.reviewDate === 'Not set'));
 });
 
 test('configured windows show actual periods, row count and no invented AI adoption event', () => {

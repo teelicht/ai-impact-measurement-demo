@@ -6,7 +6,7 @@ import type { SourceBundle } from './model.js';
 export interface ReportView {
   operational: OperationalReport;
   context?: SourceBundle['context'];
-  actions: { owner: string; action: string; condition: string }[];
+  actions: { owner: string; action: string; condition: string; reviewDate: string }[];
   examples: { id: string; kind: string; treatment: string }[];
   migration: { scope: string; assumptions: string[]; result: FinancialResult };
 }
@@ -29,13 +29,13 @@ export function buildReport(bundle: SourceBundle): ReportView {
     context: bundle.context,
     actions: [
       { owner: 'Service owner', action: 'Record approved controls, available capacity, spending limits and accountable owners.',
-        condition: 'Check guardrails before changing the scope of AI-assisted work.' },
+        condition: 'Check guardrails before changing the scope of AI-assisted work.', reviewDate: 'Not set' },
       { owner: 'Delivery lead', action: 'Capture start and first release approval for every eligible Story or Task, including open work.',
-        condition: 'Evaluate lead time only after coverage is checked.' },
+        condition: 'Evaluate lead time only after coverage is checked.', reviewDate: 'Not set' },
       { owner: 'Finance and engineering', action: 'Record non-overlapping review, correction, enablement and platform costs; reconcile shared charges once.',
-        condition: 'Do not calculate API-team ROI from tool spend alone.' },
+        condition: 'Do not calculate API-team ROI from tool spend alone.', reviewDate: 'Not set' },
       { owner: 'Quality owner', action: 'Link incoming bugs to releases and define follow-up windows.',
-        condition: 'Only then assess escaped defects.' },
+        condition: 'Only then assess escaped defects.', reviewDate: 'Not set' },
     ],
     examples,
     migration: { scope: migrationCase.scope, assumptions: migrationCase.assumptions,
