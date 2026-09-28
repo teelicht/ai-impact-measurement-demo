@@ -34,3 +34,7 @@ See [the adapter guide](docs/adapters.md) for a local Git revision, structured t
 ```sh
 npm test
 ```
+
+## License
+
+Licensed under the [MIT License](LICENSE).
