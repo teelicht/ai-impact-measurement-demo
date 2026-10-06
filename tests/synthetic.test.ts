@@ -8,11 +8,13 @@ import { validateBundle } from "../src/validate.js";
 interface MonthlyRow {
 	month: string;
 	approved: number;
+	stories: number;
 	commits: number;
 	testTouches: number;
 	bugs: number;
 	tokensMillions: number;
-	toolSpendEur: number;
+	subscriptionEur: number;
+	consumptionEur: number;
 }
 
 const monthly = JSON.parse(readFileSync("data/api-team-monthly.json", "utf8")) as {
@@ -27,26 +29,26 @@ test("versioned targets reproduce every appendix row and both period totals", ()
 	assert.equal(monthly.metadata.lastMonth, "2026-08");
 	assert.match(monthly.metadata.mappingNote, /illustrative/i);
 	assert.deepEqual(monthly.rows, [
-		{ month: "M1", approved: 18, commits: 100, testTouches: 12, bugs: 4, tokensMillions: 8, toolSpendEur: 80 },
-		{ month: "M2", approved: 22, commits: 100, testTouches: 14, bugs: 5, tokensMillions: 9, toolSpendEur: 90 },
-		{ month: "M3", approved: 20, commits: 100, testTouches: 15, bugs: 3, tokensMillions: 10, toolSpendEur: 100 },
-		{ month: "M4", approved: 24, commits: 100, testTouches: 16, bugs: 4, tokensMillions: 11, toolSpendEur: 110 },
-		{ month: "M5", approved: 19, commits: 100, testTouches: 14, bugs: 5, tokensMillions: 10, toolSpendEur: 100 },
-		{ month: "M6", approved: 23, commits: 100, testTouches: 19, bugs: 3, tokensMillions: 12, toolSpendEur: 120 },
-		{ month: "M7", approved: 24, commits: 100, testTouches: 20, bugs: 3, tokensMillions: 12, toolSpendEur: 120 },
-		{ month: "M8", approved: 27, commits: 100, testTouches: 22, bugs: 5, tokensMillions: 14, toolSpendEur: 140 },
-		{ month: "M9", approved: 25, commits: 100, testTouches: 24, bugs: 4, tokensMillions: 15, toolSpendEur: 150 },
-		{ month: "M10", approved: 30, commits: 100, testTouches: 25, bugs: 3, tokensMillions: 16, toolSpendEur: 160 },
-		{ month: "M11", approved: 28, commits: 100, testTouches: 27, bugs: 5, tokensMillions: 16, toolSpendEur: 160 },
-		{ month: "M12", approved: 34, commits: 100, testTouches: 32, bugs: 4, tokensMillions: 17, toolSpendEur: 170 },
+		{ month: "M1", approved: 18, stories: 11, commits: 100, testTouches: 12, bugs: 4, tokensMillions: 40, subscriptionEur: 210, consumptionEur: 90 },
+		{ month: "M2", approved: 22, stories: 12, commits: 100, testTouches: 14, bugs: 5, tokensMillions: 50, subscriptionEur: 210, consumptionEur: 110 },
+		{ month: "M3", approved: 20, stories: 9, commits: 100, testTouches: 15, bugs: 3, tokensMillions: 46, subscriptionEur: 210, consumptionEur: 100 },
+		{ month: "M4", approved: 24, stories: 15, commits: 100, testTouches: 16, bugs: 4, tokensMillions: 56, subscriptionEur: 210, consumptionEur: 120 },
+		{ month: "M5", approved: 19, stories: 8, commits: 100, testTouches: 14, bugs: 5, tokensMillions: 46, subscriptionEur: 210, consumptionEur: 100 },
+		{ month: "M6", approved: 23, stories: 14, commits: 100, testTouches: 19, bugs: 3, tokensMillions: 56, subscriptionEur: 210, consumptionEur: 120 },
+		{ month: "M7", approved: 24, stories: 16, commits: 104, testTouches: 20, bugs: 3, tokensMillions: 70, subscriptionEur: 210, consumptionEur: 150 },
+		{ month: "M8", approved: 27, stories: 15, commits: 108, testTouches: 22, bugs: 5, tokensMillions: 86, subscriptionEur: 210, consumptionEur: 175 },
+		{ month: "M9", approved: 25, stories: 17, commits: 106, testTouches: 24, bugs: 4, tokensMillions: 88, subscriptionEur: 210, consumptionEur: 180 },
+		{ month: "M10", approved: 30, stories: 18, commits: 114, testTouches: 25, bugs: 3, tokensMillions: 114, subscriptionEur: 210, consumptionEur: 220 },
+		{ month: "M11", approved: 28, stories: 13, commits: 112, testTouches: 27, bugs: 5, tokensMillions: 115, subscriptionEur: 210, consumptionEur: 220 },
+		{ month: "M12", approved: 34, stories: 21, commits: 120, testTouches: 32, bugs: 4, tokensMillions: 150, subscriptionEur: 210, consumptionEur: 270 },
 	]);
 	const sum = (rows: MonthlyRow[], field: keyof Omit<MonthlyRow, "month">) => rows.reduce((total, row) => total + row[field], 0);
 	for (const [rows, totals] of [
-		[monthly.rows.slice(0, 6), [126, 600, 90, 24, 60, 600]],
-		[monthly.rows.slice(6), [168, 600, 150, 24, 90, 900]],
+		[monthly.rows.slice(0, 6), [126, 600, 90, 24, 294, 1260, 640]],
+		[monthly.rows.slice(6), [168, 664, 150, 24, 623, 1260, 1215]],
 	] as const) {
 		assert.deepEqual(
-			(["approved", "commits", "testTouches", "bugs", "tokensMillions", "toolSpendEur"] as const).map((field) => sum(rows, field)),
+			(["approved", "commits", "testTouches", "bugs", "tokensMillions", "subscriptionEur", "consumptionEur"] as const).map((field) => sum(rows, field)),
 			totals,
 		);
 	}
@@ -69,6 +71,7 @@ test("expanded records reconcile to each monthly target and are reproducible", (
 			(ticket) => !ticket.parentId && ["Story", "Task"].includes(ticket.type) && ticket.status === "approved" && ticket.approvals[0]?.at.startsWith(month),
 		);
 		assert.equal(approved.length, row.approved, `${row.month} first approvals`);
+		assert.equal(approved.filter((ticket) => ticket.type === "Story").length, row.stories, `${row.month} approved Stories`);
 		const commits = bundle.commits!.filter((commit) => commit.at.startsWith(month));
 		assert.equal(commits.length, row.commits, `${row.month} commits`);
 		assert.equal(commits.filter((commit) => commit.paths.some((path) => path.includes(".test."))).length, row.testTouches, `${row.month} test touches`);
@@ -81,13 +84,16 @@ test("expanded records reconcile to each monthly target and are reproducible", (
 			[row.tokensMillions * 1_000_000],
 			`${row.month} monthly tokens`,
 		);
-		assert.equal(
-			bundle.charges!.filter((charge) => charge.month === month).reduce((total, charge) => total + charge.amount, 0),
-			row.toolSpendEur,
+		assert.deepEqual(
+			bundle.charges!.filter((charge) => charge.month === month).map((charge) => [charge.category, charge.amount]),
+			[
+				["subscription", row.subscriptionEur],
+				["consumption", row.consumptionEur],
+			],
 			`${row.month} spend`,
 		);
 	}
-	assert.equal(bundle.commits?.filter((commit) => commit.at.startsWith("2026-03")).length, 100);
+	assert.equal(bundle.commits?.filter((commit) => commit.at.startsWith("2026-03")).length, 104);
 });
 
 test("each month has only one token total and no invented event categories", () => {
@@ -153,7 +159,7 @@ test("March inclusion decisions, attempt accounting and source gaps remain inspe
 			.usage!.filter(isMonthlyUsage)
 			.filter((event) => event.month === "2026-03")
 			.map((event) => event.tokens),
-		[12_000_000],
+		[70_000_000],
 	);
 	for (const source of ["tickets", "commits", "usage", "charges"] as const) {
 		const coverage = bundle.coverage.find((entry) => entry.source === source)!;

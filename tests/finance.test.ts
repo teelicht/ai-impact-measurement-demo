@@ -69,11 +69,11 @@ test("M7 reconciles EUR billing categories and spend per approved parent without
 	const summary = summarizeUsageAndCost(loadSynthetic());
 	const march = summary.monthly.find((row) => row.month === "2026-03");
 	assert.ok(march);
-	assert.equal(march.tokens, 12_000_000);
-	assert.equal(march.toolSpend, 120);
-	assert.deepEqual(march.billingCategories, { subscription: 30, consumption: 90 });
+	assert.equal(march.tokens, 70_000_000);
+	assert.equal(march.toolSpend, 360);
+	assert.deepEqual(march.billingCategories, { subscription: 210, consumption: 150 });
 	assert.equal(march.approvedParents, 24);
-	assert.equal(march.toolSpendPerApprovedParent, 5);
+	assert.equal(march.toolSpendPerApprovedParent, 15);
 	assert.equal(summary.currency, "EUR");
 	assert.equal(summary.totalAiCost, null);
 	assert.equal(summary.roi, null);
@@ -87,7 +87,7 @@ test("monthly rollups retain total tokens but have no inferred breakdown", () =>
 	const first = records[0];
 	assert.ok(first);
 	const summary = summarizeUsageAndCost(source);
-	assert.equal(summary.monthly[6].tokens, 12_000_000);
+	assert.equal(summary.monthly[6].tokens, 70_000_000);
 	assert.equal(summary.monthly[6].inputTokens, null);
 	assert.equal(summary.monthly[6].cachedInputTokens, null);
 	assert.equal(summary.monthly[6].outputTokens, null);
@@ -111,7 +111,7 @@ test("a missing month in partial monthly usage is unavailable, not zero", () => 
 	});
 	assert.equal(summary.monthly[0].tokens, null);
 	assert.equal(summary.monthly[0].measureStatus.tokens, "partial");
-	assert.equal(summary.monthly[1].tokens, 9_000_000);
+	assert.equal(summary.monthly[1].tokens, 50_000_000);
 });
 
 test("direct monthly accounting rejects out-of-window rollups and empty exports remain unknown", () => {
@@ -146,7 +146,7 @@ test("unavailable or partial sources cannot become a zero or complete cost ratio
 		...source,
 		coverage: source.coverage.map((entry) => (entry.source === "tickets" ? { ...entry, status: "partial" as const, reason: "Missing tickets." } : entry)),
 	});
-	assert.equal(partial.monthly[6].toolSpend, 120);
+	assert.equal(partial.monthly[6].toolSpend, 360);
 	assert.equal(partial.monthly[6].toolSpendPerApprovedParent, null);
 });
 

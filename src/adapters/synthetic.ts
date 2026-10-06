@@ -6,11 +6,13 @@ import { validateBundle } from "../validate.js";
 interface MonthlyRow {
 	month: string;
 	approved: number;
+	stories: number;
 	commits: number;
 	testTouches: number;
 	bugs: number;
 	tokensMillions: number;
-	toolSpendEur: number;
+	subscriptionEur: number;
+	consumptionEur: number;
 }
 
 interface MonthlyFixture {
@@ -27,6 +29,9 @@ export function loadSynthetic(): SourceBundle {
 	const fixture = JSON.parse(readFileSync(new URL("../../../data/api-team-monthly.json", import.meta.url), "utf8")) as MonthlyFixture;
 	if (fixture.version !== 1 || fixture.rows.length !== 12) {
 		throw new Error("synthetic fixture: expected version 1 with twelve months");
+	}
+	if (fixture.rows.some((row) => !Number.isInteger(row.stories) || row.stories < 1 || row.stories >= row.approved)) {
+		throw new Error("synthetic fixture: stories must be a positive integer below approved");
 	}
 
 	const tickets: Ticket[] = [];
@@ -76,11 +81,15 @@ export function loadSynthetic(): SourceBundle {
 			});
 		}
 
+		let storyCount = parentIds.filter((id) => tickets.find((ticket) => ticket.id === id)?.type === "Story").length;
 		for (let parentIndex = parentIds.length; parentIndex < row.approved; parentIndex++) {
 			const id = `API-${nextTicket++}`;
+			// Spread the month's Stories evenly among its Tasks.
+			const isStory = Math.floor(((parentIndex + 1) * row.stories) / row.approved) > storyCount;
+			if (isStory) storyCount++;
 			tickets.push({
 				id,
-				type: parentIndex % 2 === 0 ? "Story" : "Task",
+				type: isStory ? "Story" : "Task",
 				status: "approved",
 				provenance: provenance("synthetic-tickets", id),
 				createdAt: `${month}-02T09:00:00Z`,
@@ -126,10 +135,9 @@ export function loadSynthetic(): SourceBundle {
 			tokens: row.tokensMillions * 1_000_000,
 		});
 
-		const subscription = Math.floor(row.toolSpendEur / 4);
 		for (const [category, amount] of [
-			["subscription", subscription],
-			["consumption", row.toolSpendEur - subscription],
+			["subscription", row.subscriptionEur],
+			["consumption", row.consumptionEur],
 		] as const) {
 			const id = `charge-${row.month}-${category}`;
 			charges.push({
@@ -175,7 +183,7 @@ export function loadSynthetic(): SourceBundle {
 		context: {
 			owner: "Engineering lead (fictional)",
 			updatedAt: "2026-09-01",
-			description: "Fictional API team maintaining backward-compatible endpoint changes.",
+			description: "Fictional six-developer API team maintaining backward-compatible endpoint changes.",
 			includedWork: "Eligible Stories and Tasks at first release approval; eligible non-merge commits and incoming production bugs.",
 			excludedWork: "Emergency fixes, larger contract changes, defects and sub-tasks are excluded from approved Stories and Tasks.",
 			aiUse: "Agents prepare endpoint changes more systematically from M7. Both periods record AI tool consumption and charges, but AI use per change is unknown.",
@@ -188,7 +196,7 @@ export function loadSynthetic(): SourceBundle {
 		startDate: `${fixture.metadata.firstMonth}-01`,
 		endDate: new Date(Date.UTC(2025, 8 + fixture.rows.length, 0)).toISOString().slice(0, 10),
 		timezone: "UTC",
-		extractedAt: "2026-09-01T00:00:00Z",
+		extractedAt: "2026-09-01T08:47:00Z",
 		currency: "EUR",
 		completenessAttestation:
 			"Version 1 synthetic monthly targets; " +

@@ -44,7 +44,7 @@ test("the default overview is a synthetic report profile, not a decision verdict
 	assert.match(html, /API.team ROI[\s\S]*unassessed/i);
 	assert.match(html, /24[\s\S]*24/);
 	assert.match(html, /M1.M6[\s\S]*M7.M12/);
-	for (const heading of ["Overview", "Report profile", "Utilization", "Impact", "Cost", "Evidence", "Definitions", "Monthly ledger", "Next actions"]) {
+	for (const heading of ["Overview", "Report profile", "Utilization and Cost", "Impact", "Cost", "Evidence", "Definitions", "Monthly ledger", "Next actions"]) {
 		assert.match(html, new RegExp(`<h[1-6][^>]*>${heading}</h[1-6]>`, "i"));
 	}
 	assert.ok(html.indexOf('id="actions"') > html.indexOf('id="evidence"'));
@@ -190,7 +190,7 @@ test("overview totals qualify partial ticket and Git coverage and context text i
 	);
 	const html = renderHtml(buildReport(source));
 	assert.match(html, /Approved Stories and Tasks<\/div><div class="kpi-value">294 \(partial\)/);
-	assert.match(html, /Git commits<\/div><div class="kpi-value">1,200 \(partial\)/);
+	assert.match(html, /Git commits<\/div><div class="kpi-value">1,264 \(partial\)/);
 	assert.match(html, /&lt;\/script&gt;&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
 	assert.doesNotMatch(html, /<script>alert\(1\)<\/script>/);
 });
@@ -229,14 +229,16 @@ test("the report names approved Stories and Tasks without hiding the counting ru
 
 test("cost presentation labels currency and links monthly tokens to an optional charge breakdown", () => {
 	const html = renderHtml(buildReport(loadSynthetic()));
-	const cost = html.split('<section id="cost">')[1]?.split('<section id="ledger">')[0];
+	const cost = html.split('<h3 id="cost">Cost</h3>')[1]?.split('<section id="issue-volume">')[0];
+	assert.doesNotMatch(html, /<section id="cost">|href="#cost"/);
+	assert.match(html, /<section id="utilization"><div class="section-head"><h2>Utilization and Cost<\/h2>/);
 	assert.ok(cost);
-	assert.match(cost, /<caption>Recorded tool charges by month, EUR<\/caption>[\s\S]*<th scope="col">Recorded tool charges \(EUR\)<\/th>[\s\S]*<td>EUR 120<\/td>/);
+	assert.match(cost, /<caption>Recorded tool charges by month, EUR<\/caption>[\s\S]*<th scope="col">Recorded tool charges \(EUR\)<\/th>[\s\S]*<td>EUR 360<\/td>/);
 	assert.match(cost, /<details class="cost-composition"><summary>Monthly cost composition and token use<\/summary>/);
 	assert.doesNotMatch(cost, /<details class="cost-composition" open/);
 	assert.match(cost, /<th scope="col">Tokens \(millions\)<\/th>/);
 	assert.match(cost, /<th scope="col">Recorded tool charges \(EUR\)<\/th>/);
-	assert.match(cost, /<th scope="row">M7<\/th><td>12<\/td><td>subscription: EUR 30; consumption: EUR 90<\/td><td>EUR 120<\/td><td>EUR 5<\/td>/);
+	assert.match(cost, /<th scope="row">M7<\/th><td>70<\/td><td>subscription: EUR 210; consumption: EUR 150<\/td><td>EUR 360<\/td><td>EUR 15<\/td>/);
 	assert.match(cost, /monthly token totals alone cannot explain them or establish a per-token price/i);
 	assert.match(cost, /illustrative[\s\S]*not (?:a reconstructed invoice|computed from tokens)/i);
 });
@@ -275,7 +277,6 @@ test("ledger and trend alternatives expose monthly counts and source coverage", 
 	assert.match(html, /input tokens|cached input/i);
 	assert.match(html, /retries/i);
 	assert.match(html, /excluded|duplicate approvals/i);
-	assert.match(html, /missing start/i);
 	assert.match(html, /source coverage/i);
 });
 
@@ -307,7 +308,7 @@ test("monthly totals show no invented model, token-category, retry or task detai
 	assert.match(utilization, /model.*unavailable|breakdown.*unavailable/i);
 	assert.doesNotMatch(utilization, /<th scope="row">example-model<\/th>|linked attempts/i);
 	assert.match(utilization, /Input \+ output tokens by month, millions/);
-	assert.match(utilization, /Token use vs created issues by month/);
+	assert.match(utilization, /Token use vs approved Stories and Tasks by month/);
 	const tokenCard = utilization.split('data-field="tokens"')[1]?.split("</figure>")[0];
 	assert.ok(tokenCard);
 	assert.match(
@@ -329,16 +330,24 @@ test("utilization contrasts monthly issue volume and token totals without task a
 	const html = renderHtml(buildReport(loadSynthetic()));
 	const utilization = html.split('<section id="utilization">')[1]?.split('<section id="git">')[0];
 	assert.ok(utilization);
-	assert.ok(utilization.indexOf('data-field="tokens"') < utilization.indexOf('data-comparison="tokens-issues"'));
+	assert.ok(utilization.indexOf('data-field="tokens"') < utilization.indexOf('data-comparison="tokens-approved"'));
 	assert.match(utilization, /<span class="chart-title">Input \+ output tokens<\/span><span class="chart-hint">millions<\/span>/);
-	assert.match(utilization, /<span class="chart-title">Token use vs created issues<\/span>/);
+	assert.match(utilization, /<span class="chart-title">Token use vs approved Stories and Tasks<\/span><span class="chart-hint">index, log scale<\/span>/);
+	assert.match(utilization, /log scale, so equal slopes mean equal growth rates/);
 	assert.match(utilization, /<caption>Input \+ output tokens by month, millions<\/caption>/);
 	assert.match(utilization, /data-scale="1000000" data-unit="million tokens"/);
-	assert.match(utilization, /data-comparison="tokens-issues" data-base-month="2025-09"/);
-	assert.match(utilization, /<caption>Token use vs created issues by month; indexed to M1 \(2025-09\) = 100<\/caption>/);
-	assert.match(utilization, /<th scope="row">M1 \(2025-09\)<\/th><td>8<\/td><td>22<\/td><td>100<\/td><td>100<\/td>/);
+	assert.match(utilization, /data-comparison="tokens-approved" data-base-month="2025-09"/);
+	assert.match(utilization, /<caption>Token use vs approved Stories and Tasks by month; indexed to M1 \(2025-09\) = 100<\/caption>/);
+	assert.match(utilization, /<th scope="row">M1 \(2025-09\)<\/th><td>40<\/td><td>18<\/td><td>100<\/td><td>100<\/td>/);
 	assert.match(utilization, /sharing a month does not link tokens to a task/i);
 	assert.doesNotMatch(utilization, /Link and token coverage|linked attempts|class="detail-list"/i);
+});
+
+test("extraction time is shown as a readable UTC time", () => {
+	const html = renderHtml(buildReport(loadSynthetic()));
+	assert.match(html, /extracted 2026-09-01 08:47 UTC<\/p><\/header>/);
+	assert.match(html, /Extraction: 2026-09-01 08:47 UTC;/);
+	assert.doesNotMatch(html.split("<script")[0], /2026-09-01T08:47/);
 });
 
 test("comparison uses the first shared positive month and leaves absent baselines unavailable", () => {
@@ -347,7 +356,7 @@ test("comparison uses the first shared positive month and leaves absent baseline
 	const html = renderHtml(view);
 	const utilization = html.split('<section id="utilization">')[1]?.split('<section id="git">')[0];
 	assert.ok(utilization);
-	assert.match(utilization, /data-comparison="tokens-issues" data-base-month="2025-10"/);
+	assert.match(utilization, /data-comparison="tokens-approved" data-base-month="2025-10"/);
 	assert.match(utilization, /indexed to M2 \(2025-10\) = 100/);
 
 	for (const month of view.operational.monthly) {
@@ -356,9 +365,9 @@ test("comparison uses the first shared positive month and leaves absent baseline
 	}
 	const missing = renderHtml(view).split('<section id="utilization">')[1]?.split('<section id="git">')[0];
 	assert.ok(missing);
-	assert.match(missing, /data-comparison="tokens-issues" data-base-month=""/);
+	assert.match(missing, /data-comparison="tokens-approved" data-base-month=""/);
 	assert.match(missing, /index unavailable: no month has positive values for both measures/);
-	assert.match(missing, /<th scope="row">M1 \(2025-09\)<\/th><td>Unavailable<\/td><td>22<\/td><td>Unavailable<\/td>/);
+	assert.match(missing, /<th scope="row">M1 \(2025-09\)<\/th><td>Unavailable<\/td><td>18<\/td><td>Unavailable<\/td>/);
 });
 
 test("impact detail includes issue-type mix and repository diagnostics without inventing observations", () => {
@@ -376,7 +385,7 @@ test("issue types retain monthly trend cards as well as the stacked volume chart
 	assert.match(html, /id="category-trends"/);
 	assert.match(html, /data-type="Story"/);
 	assert.match(html, /data-type="Bug"/);
-	assert.match(html, /<caption>Story by month<\/caption>[\s\S]*?<th scope="row">M7 \(2026-03\)<\/th><td>13<\/td>/);
+	assert.match(html, /<caption>Story by month<\/caption>[\s\S]*?<th scope="row">M7 \(2026-03\)<\/th><td>17<\/td>/);
 	assert.match(html, /<caption>Bug by month<\/caption>[\s\S]*?<th scope="row">M7 \(2026-03\)<\/th><td>3<\/td>/);
 });
 
@@ -486,13 +495,9 @@ test("missing sources remain unavailable rather than turning into favorable zero
 	assert.match(html, /API.team ROI[\s\S]*unassessed/i);
 });
 
-test("absent ticket coverage does not display open work or missing starts as zero", () => {
-	const source = loadSynthetic();
-	source.tickets = undefined;
-	source.coverage = source.coverage.map((entry) => (entry.source === "tickets" ? { ...entry, status: "unavailable", reason: "Tickets not supplied" } : entry));
-	const html = renderHtml(buildReport(source));
-	assert.match(html, /Open Stories and Tasks: Unavailable/);
-	assert.match(html, /missing start times: Unavailable/);
+test("impact omits counting choices and work-in-progress summaries", () => {
+	const html = renderHtml(buildReport(loadSynthetic()));
+	assert.doesNotMatch(html, /Counting choices|Work in progress and missing timestamps|Open Stories and Tasks:/);
 });
 
 test("prototype-like model labels and hostile coverage status do not corrupt markup", () => {

@@ -54,29 +54,29 @@ test("all twelve monthly rows and combined period totals match the appendix", ()
 	assert.deepEqual(
 		report.monthly.map((row) => [row.label, row.approvedParents, row.commits, row.testTouchCommits, row.incomingBugs, row.tokens, row.toolSpend]),
 		[
-			["M1", 18, 100, 12, 4, 8_000_000, 80],
-			["M2", 22, 100, 14, 5, 9_000_000, 90],
-			["M3", 20, 100, 15, 3, 10_000_000, 100],
-			["M4", 24, 100, 16, 4, 11_000_000, 110],
-			["M5", 19, 100, 14, 5, 10_000_000, 100],
-			["M6", 23, 100, 19, 3, 12_000_000, 120],
-			["M7", 24, 100, 20, 3, 12_000_000, 120],
-			["M8", 27, 100, 22, 5, 14_000_000, 140],
-			["M9", 25, 100, 24, 4, 15_000_000, 150],
-			["M10", 30, 100, 25, 3, 16_000_000, 160],
-			["M11", 28, 100, 27, 5, 16_000_000, 160],
-			["M12", 34, 100, 32, 4, 17_000_000, 170],
+			["M1", 18, 100, 12, 4, 40_000_000, 300],
+			["M2", 22, 100, 14, 5, 50_000_000, 320],
+			["M3", 20, 100, 15, 3, 46_000_000, 310],
+			["M4", 24, 100, 16, 4, 56_000_000, 330],
+			["M5", 19, 100, 14, 5, 46_000_000, 310],
+			["M6", 23, 100, 19, 3, 56_000_000, 330],
+			["M7", 24, 104, 20, 3, 70_000_000, 360],
+			["M8", 27, 108, 22, 5, 86_000_000, 385],
+			["M9", 25, 106, 24, 4, 88_000_000, 390],
+			["M10", 30, 114, 25, 3, 114_000_000, 430],
+			["M11", 28, 112, 27, 5, 115_000_000, 430],
+			["M12", 34, 120, 32, 4, 150_000_000, 480],
 		],
 	);
 	assert.deepEqual(
 		report.periods.map((row) => [row.label, row.approvedParents, row.commits, row.testTouchCommits, row.testTouchShare, row.incomingBugs, row.tokens, row.toolSpend]),
 		[
-			["M1-M6", 126, 600, 90, 90 / 600, 24, 60_000_000, 600],
-			["M7-M12", 168, 600, 150, 150 / 600, 24, 90_000_000, 900],
+			["M1-M6", 126, 600, 90, 90 / 600, 24, 294_000_000, 1900],
+			["M7-M12", 168, 664, 150, 150 / 664, 24, 623_000_000, 2475],
 		],
 	);
 	assert.equal(report.comparisons.approvedParentsRelativeChange, 168 / 126 - 1);
-	assert.equal(report.comparisons.testTouchSharePercentagePoints, (150 / 600 - 90 / 600) * 100);
+	assert.equal(report.comparisons.testTouchSharePercentagePoints, (150 / 664 - 90 / 600) * 100);
 });
 
 test("a fourteen-month configured window compares every reported month in adjacent halves", () => {
@@ -105,12 +105,12 @@ test("a single month has no invented comparison period or relative change", () =
 test("operational monthly usage and spend agree with the accounting breakdown and leave ROI unassessed", () => {
 	const report = aggregate(loadSynthetic());
 	const march = report.monthly[6];
-	assert.equal(march.tokens, 12_000_000);
+	assert.equal(march.tokens, 70_000_000);
 	assert.equal(march.usage?.attempts, null);
 	assert.equal(march.usage?.byModel, null);
 	assert.equal(march.usage?.workItemLinks, null);
-	assert.deepEqual(march.billingCategories, { subscription: 30, consumption: 90 });
-	assert.equal(march.toolSpendPerApprovedParent, 5);
+	assert.deepEqual(march.billingCategories, { subscription: 210, consumption: 150 });
+	assert.equal(march.toolSpendPerApprovedParent, 15);
 	assert.equal(report.totalAiCost, null);
 	assert.equal(report.roi, null);
 	assert.ok(report.evidenceGaps.some((gap) => gap.metric === "totalAiCost" && /review|correction/i.test(gap.reason)));
@@ -127,14 +127,14 @@ test("a period rejects token totals that exceed safe integer precision", () => {
 test("created issue mix, open parents and missing approvals remain distinct", () => {
 	const report = aggregate(loadSynthetic());
 	const march = report.monthly[6];
-	assert.deepEqual({ ...march.issueTypes }, { Story: 13, Task: 12, "Sub-task": 1, Bug: 3 });
+	assert.deepEqual({ ...march.issueTypes }, { Story: 17, Task: 8, "Sub-task": 1, Bug: 3 });
 	assert.equal(march.createdParents, 25);
 	assert.equal(march.openParents, 1);
 	assert.equal(march.missingApproval, 0);
 	assert.equal(march.missingStartTimes, 24);
 	assert.equal(report.exclusions.duplicateApprovals, 1);
 	assert.equal(report.exclusions.children, 1);
-	assert.equal(march.commitLinks?.linked, 100);
+	assert.equal(march.commitLinks?.linked, 104);
 	assert.equal(report.exclusions.bugsWithUnknownReleaseLinkage, 48);
 	assert.equal("unlinkedBugs" in report.exclusions, false);
 	assert.equal(report.escapedDefects, null);

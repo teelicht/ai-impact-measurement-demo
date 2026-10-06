@@ -17,7 +17,7 @@ test("default CLI writes one synthetic report as HTML and evidence JSON", () => 
 		const html = readFileSync(join(output, "api-team.html"), "utf8");
 		const evidence = JSON.parse(readFileSync(join(output, "api-team-evidence.json"), "utf8"));
 		assert.match(html, /synthetic/i);
-		assert.match(html, /Total AI cost: unassessed/i);
+		assert.match(html, /total AI cost and API-team ROI: unassessed/i);
 		assert.match(html, /human effort[\s\S]*unassessed/i);
 		assert.doesNotMatch(html, /https?:\/\/(?:[^"\s]*jira|[^"\s]*git(?:hub|lab))/i);
 		const rows = evidence.monthly;
