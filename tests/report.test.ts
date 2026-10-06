@@ -33,7 +33,7 @@ test("the default overview is a synthetic report profile, not a decision verdict
 	assert.match(html, /<title>AI Impact Report \| Fictional API team<\/title>/);
 	assert.match(html, /<h1>AI Impact Report<\/h1><p class="sub">Fictional API team/);
 	assert.equal(Object.hasOwn(view, "decision"), false);
-	assert.match(html, /<h2>Overview<\/h2>[\s\S]*Team and service[\s\S]*AI use and context[\s\S]*Repository evidence/);
+	assert.match(html, /<h2>Overview<\/h2>[\s\S]*Team and service[\s\S]*AI use and context[\s\S]*Data Sources/);
 	assert.match(html, /<h2>Report profile<\/h2>/);
 	assert.match(html, /Engineering lead \(fictional\)|Engineering lead/);
 	assert.match(html, /Synthetic API commit history/);
@@ -168,7 +168,7 @@ test("configured reports do not inherit fictional context or confuse updates wit
 	const html = renderHtml(buildReport({ ...withoutUsage(source), context: undefined, sourceKind: "configured", endDate: "2025-09-30", extractedAt: "2026-11-01T00:00:00Z" }));
 	assert.match(html, /Team and service[\s\S]*Not supplied/);
 	assert.match(html, /AI use and context[\s\S]*Not supplied/);
-	assert.match(html, /Repository evidence[\s\S]*Not supplied/);
+	assert.match(html, /Data Sources[\s\S]*Not supplied/);
 	assert.doesNotMatch(html, /Synthetic API commit history|Agent-supported endpoint preparation|2026-11-01<\/dd>/);
 	assert.match(html, /Data extracted[^<]*2026-11-01/);
 	assert.doesNotMatch(html, /Synthetic examples illustrate inclusion/);
