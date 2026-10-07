@@ -3,10 +3,23 @@
   "metadata": {
     "firstMonth": "2025-09",
     "lastMonth": "2026-08",
-    "mappingNote": "Illustrative calendar mapping: M1 is September 2025 through M12 in August 2026; M7 is March 2026. The paper uses relative months. Both periods record AI tool consumption and charges, but use per change is unknown.",
+    "mappingNote": "Illustrative calendar mapping: M1 is September 2025 through M12 in August 2026; M7 is March 2026. The paper uses relative months.",
     "tokenNote": "Input plus output includes failed and retried attempts; cached input is part of input, not an additional category.",
     "spendNote": "Six developers: flat seat subscriptions (6 x EUR 35) plus usage-based consumption.",
     "limitations": ["Historical human effort unavailable", "Historical work start times unavailable", "Production bugs lack release linkage"]
+  },
+  "context": {
+    "owner": "Engineering lead (fictional)",
+    "updatedAt": "2026-09-01",
+    "description": "Fictional six-developer API team maintaining backward-compatible endpoint changes.",
+    "includedWork": "Eligible Stories and Tasks at first release approval; eligible non-merge commits and incoming production bugs.",
+    "excludedWork": "Emergency fixes, larger contract changes, defects and sub-tasks are excluded from approved Stories and Tasks.",
+    "aiUse": "From M7, agents are used to implement endpoint changes, write contract tests and open merge requests; developers review and merge. Both periods record AI tool consumption and charges, but AI use per change is unknown.",
+    "concurrentChanges": "Staffing, process and tool/model version changes were not recorded for these windows.",
+    "question": "What changed in delivery, quality, workload and spending between M1-M6 and M7-M12?",
+    "controls": "Guardrail status and review capacity are not assessed from these records.",
+    "resourceLimits": "Historical affordability limit and total AI cost were not recorded.",
+    "repositories": ["Synthetic API commit history"]
   },
   "rows": [
     { "month": "M1", "approved": 18, "stories": 11, "commits": 100, "testTouches": 12, "bugs": 4, "tokensMillions": 40, "subscriptionEur": 210, "consumptionEur": 90 },

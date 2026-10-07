@@ -68,7 +68,7 @@ test("configured windows show actual periods, row count and no invented AI adopt
 	assert.match(html, /M1-M7[\s\S]*M8-M14/);
 	assert.match(html, /id="row-count"[^>]*>14 months/);
 	assert.match(html, /<option value="after">M8-M14<\/option>/);
-	assert.doesNotMatch(html, /more systematic AI use|increased AI use|M7 split/);
+	assert.doesNotMatch(html, /more systematic AI use|agent workflow|increased AI use|M7 split/i);
 });
 
 test("a one-month report marks comparisons unavailable without fictitious zeroes", () => {
@@ -78,7 +78,7 @@ test("a one-month report marks comparisons unavailable without fictitious zeroes
 	);
 	assert.match(html, /comparison unavailable[^<]*fewer than two months/i);
 	assert.match(html, /id="row-count"[^>]*>1 month</);
-	assert.doesNotMatch(html, /M1-M6|M7-M12|more systematic AI use/i);
+	assert.doesNotMatch(html, /M1-M6|M7-M12|more systematic AI use|agent workflow/i);
 });
 
 test("thirteen months with one approval per month do not claim increased accepted work", () => {
@@ -143,10 +143,10 @@ test("dashboard follows the blueprint hierarchy with a stacked chart and print l
 	assert.equal((html.match(/class="chart" data-field="/g) ?? []).length, 5);
 	assert.match(html, /<caption>Created tickets by month and type<\/caption>/);
 	assert.match(html, /<th scope="row">M1 \(2025-09\)<\/th><td>4<\/td>/);
-	assert.match(html, /Earlier reporting period \(M1-M6\) and more-systematic-use period \(M7-M12\)/);
+	assert.match(html, /Earlier reporting period \(M1-M6\) and agent-workflow period \(M7-M12\)/);
 	assert.match(html, /AI use per change is unknown/);
 	assert.doesNotMatch(html, /M1-M6 already includes? AI use/);
-	assert.match(html, /More systematic use from/);
+	assert.match(html, /Agent workflow from/);
 	assert.doesNotMatch(html, /Increased AI use from/);
 	assert.match(html, /class="split-marker"/);
 	assert.doesNotMatch(html, /class="chart" data-field="[^"]+" aria-hidden="true"/);

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
-import type { Charge, Commit, Coverage, MonthlyUsage, SourceBundle, Ticket } from "../model.js";
+import type { Charge, Commit, Coverage, MonthlyUsage, ReportContext, SourceBundle, Ticket } from "../model.js";
 import { validateBundle } from "../validate.js";
 
 interface MonthlyRow {
@@ -18,6 +18,7 @@ interface MonthlyRow {
 interface MonthlyFixture {
 	version: number;
 	metadata: { firstMonth: string; lastMonth: string; mappingNote: string };
+	context: ReportContext;
 	rows: MonthlyRow[];
 }
 
@@ -180,19 +181,7 @@ export function loadSynthetic(): SourceBundle {
 	const bundle: SourceBundle = {
 		scope: "Fictional API team",
 		sourceKind: "synthetic",
-		context: {
-			owner: "Engineering lead (fictional)",
-			updatedAt: "2026-09-01",
-			description: "Fictional six-developer API team maintaining backward-compatible endpoint changes.",
-			includedWork: "Eligible Stories and Tasks at first release approval; eligible non-merge commits and incoming production bugs.",
-			excludedWork: "Emergency fixes, larger contract changes, defects and sub-tasks are excluded from approved Stories and Tasks.",
-			aiUse: "Agents prepare endpoint changes more systematically from M7. Both periods record AI tool consumption and charges, but AI use per change is unknown.",
-			concurrentChanges: "Staffing, process and tool/model version changes were not recorded for these windows.",
-			question: "What changed in delivery, quality, workload and spending between M1-M6 and M7-M12?",
-			controls: "Guardrail status and review capacity are not assessed from these records.",
-			resourceLimits: "Historical affordability limit and total AI cost were not recorded.",
-			repositories: ["Synthetic API commit history"],
-		},
+		context: fixture.context,
 		startDate: `${fixture.metadata.firstMonth}-01`,
 		endDate: new Date(Date.UTC(2025, 8 + fixture.rows.length, 0)).toISOString().slice(0, 10),
 		timezone: "UTC",
