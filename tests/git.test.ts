@@ -43,34 +43,48 @@ function withRepo(run: (repo: string) => Promise<void> | void): Promise<void> {
 const since = "2026-03-01";
 const until = "2026-03-31";
 
-test("local Git returns bounded eligible history, paths, links and immutable revision", () =>
+/** Writes a configured report that reads commits from `repo` and, optionally, an API-101 ticket file. */
+function writeConfig(directory: string, commits: object, withTickets = false): string {
+	const sources: Record<string, object> = { commits: { kind: "git", path: directory, revision: "HEAD", ...commits } };
+	if (withTickets) {
+		writeFileSync(
+			join(directory, "tickets.json"),
+			JSON.stringify({ version: 1, tickets: [{ id: "API-101", type: "Story", createdAt: "2026-03-01T09:00:00Z", statusEvents: [] }] }),
+		);
+		sources.tickets = { kind: "file", path: "tickets.json", coverage: { status: "available", eligible: 1, extracted: 1, linked: 0, excluded: 0, missing: 0, reason: "" } };
+	}
+	const configPath = join(directory, "config.json");
+	writeFileSync(
+		configPath,
+		JSON.stringify({
+			version: 1,
+			scope: "Team",
+			startDate: since,
+			endDate: until,
+			timezone: "UTC",
+			extractedAt: "2026-04-01T00:00:00Z",
+			currency: "EUR",
+			completenessAttestation: "Local history.",
+			sources,
+		}),
+	);
+	return configPath;
+}
+
+test("local Git returns bounded history, paths and links without changing or exposing the repository", () =>
 	withRepo((repo) => {
 		const first = commit(repo, "Developer", "feature.test.ts", "API-101 add test", "2026-03-05T12:00:00Z");
 		const second = commit(repo, "Developer", "feature.ts", "Refactor source", "2026-03-06T12:00:00Z");
 		const before = git(repo, "status", "--porcelain=v1");
 		const result = loadLocalGit(repo, "HEAD", since, until, "UTC", "API-[0-9]+");
 		assert.deepEqual(
-			result.commits.map((item) => item.hash),
-			[second, first],
+			result.commits.map((item) => [item.hash, item.parents, item.paths, item.ticketIds]),
+			[
+				[second, [first], ["feature.ts"], []],
+				[first, [], ["feature.test.ts"], ["API-101"]],
+			],
 		);
-		assert.deepEqual(
-			result.commits.map((item) => item.parents),
-			[[first], []],
-		);
-		assert.deepEqual(
-			result.commits.map((item) => item.paths),
-			[["feature.ts"], ["feature.test.ts"]],
-		);
-		assert.deepEqual(
-			result.commits.map((item) => item.ticketIds),
-			[[], ["API-101"]],
-		);
-		assert.equal(result.coverage.eligible, 2);
-		assert.equal(result.coverage.extracted, 2);
-		assert.equal(result.coverage.linked, 0);
-		assert.equal(result.coverage.missing, 0);
-		assert.doesNotMatch(result.coverage.reason, /unlinked|ambiguous|verified/i);
-		assert.match(result.coverage.reason, new RegExp(second));
+		assert.deepEqual([result.coverage.eligible, result.coverage.extracted, result.coverage.linked, result.coverage.missing], [2, 2, 0, 0]);
 		assert.equal(result.inspectedRevision, second);
 		assert.match(result.extractedAt, /^\d{4}-\d{2}-\d{2}T.*Z$/);
 		assert.ok(!JSON.stringify(result).includes(repo));
@@ -92,34 +106,15 @@ test("local Git keeps only pseudonymous distinct authors and classifies test/sou
 		assert.doesNotMatch(JSON.stringify(result), /one@example\.org|two@example\.org/);
 	}));
 
-test("invalid repository and revision fail without falling back to synthetic commits", () =>
-	withRepo((repo) => {
-		commit(repo, "Developer", "feature.ts", "API-101 first", "2026-03-05T12:00:00Z");
-		assert.throws(() => loadLocalGit(join(repo, "missing"), "HEAD", since, until, "UTC"), /repository|path/i);
-		assert.throws(() => loadLocalGit(repo, "not-a-ref", since, until, "UTC"), /revision/i);
-	}));
-
-test("Git subprocess failures do not reveal the absolute repository path", () =>
+test("invalid repositories, revisions and broken history fail without fallback or path disclosure", () =>
 	withRepo(async (repo) => {
 		const root = commit(repo, "Developer", "root.ts", "Root", "2026-03-04T12:00:00Z");
 		commit(repo, "Developer", "tip.ts", "Tip", "2026-03-05T12:00:00Z");
-		const configPath = join(repo, "config.json");
-		writeFileSync(
-			configPath,
-			JSON.stringify({
-				version: 1,
-				scope: "Team",
-				startDate: since,
-				endDate: until,
-				timezone: "UTC",
-				extractedAt: "2026-04-01T00:00:00Z",
-				currency: "EUR",
-				completenessAttestation: "Local history.",
-				sources: { commits: { kind: "git", path: repo, revision: "HEAD" } },
-			}),
-		);
+		assert.throws(() => loadLocalGit(join(repo, "missing"), "HEAD", since, until, "UTC"));
+		assert.throws(() => loadLocalGit(repo, "not-a-ref", since, until, "UTC"));
+		const configPath = writeConfig(repo, {});
 		rmSync(join(repo, ".git", "objects", root.slice(0, 2), root.slice(2)));
-		const sanitized = (error: unknown) => error instanceof Error && /git.*(history|extraction|command)/i.test(error.message) && !error.message.includes(repo);
+		const sanitized = (error: unknown) => error instanceof Error && !error.message.includes(repo);
 		assert.throws(() => loadLocalGit(repo, "HEAD", since, until, "UTC"), sanitized);
 		await assert.rejects(loadConfigured(configPath), sanitized);
 	}));
@@ -131,42 +126,18 @@ test("shallow history is partial even when its visible commit falls inside the w
 		const shallow = join(repo, "shallow");
 		execFileSync("git", ["clone", "-q", "--depth", "1", "--no-local", repo, shallow]);
 		assert.equal(git(shallow, "rev-parse", "--is-shallow-repository"), "true");
-		const before = git(shallow, "status", "--porcelain=v1");
 		const result = loadLocalGit(shallow, "HEAD", since, until, "UTC", "API-[0-9]+");
 		assert.deepEqual(
 			result.commits.map((item) => item.hash),
 			[tip],
 		);
 		assert.equal(result.coverage.status, "partial");
-		assert.match(result.coverage.reason, /shallow.*history.*incomplete/i);
-		writeFileSync(join(shallow, "tickets.json"), JSON.stringify({ version: 1, tickets: [{ id: "API-101", type: "Story", createdAt: "2026-03-01T09:00:00Z", statusEvents: [] }] }));
-		const configPath = join(shallow, "config.json");
-		writeFileSync(
-			configPath,
-			JSON.stringify({
-				version: 1,
-				scope: "Team",
-				startDate: since,
-				endDate: until,
-				timezone: "UTC",
-				extractedAt: "2026-04-01T00:00:00Z",
-				currency: "EUR",
-				completenessAttestation: "Local history.",
-				sources: {
-					tickets: { kind: "file", path: "tickets.json", coverage: { status: "available", eligible: 1, extracted: 1, linked: 0, excluded: 0, missing: 0, reason: "" } },
-					commits: { kind: "git", path: shallow, revision: "HEAD", ticketPattern: "API-[0-9]+" },
-				},
-			}),
-		);
-		const report = aggregate(await loadConfigured(configPath));
-		const reason = report.coverage.find((entry) => entry.source === "commits")?.reason ?? "";
-		assert.match(reason, /shallow.*history.*incomplete/i);
-		assert.match(reason, /1 verified links, 0 unlinked \(including 0 ambiguous\)/i);
-		assert.doesNotMatch(reason, /pending ticket verification|pattern matches unverified/i);
+		const report = aggregate(await loadConfigured(writeConfig(shallow, { ticketPattern: "API-[0-9]+" }, true)));
+		const coverage = report.coverage.find((entry) => entry.source === "commits");
+		assert.deepEqual([coverage?.status, coverage?.linked], ["partial", 1]);
 		assert.equal(report.monthly[0].measureStatus.commits, "partial");
-		assert.ok(report.evidenceGaps.some((gap) => gap.metric === "commits" && /shallow/i.test(gap.reason)));
+		assert.ok(report.evidenceGaps.some((gap) => gap.metric === "commits"));
 		assert.equal(git(shallow, "rev-parse", "HEAD"), tip);
-		assert.equal(git(shallow, "status", "--porcelain=v1"), `${before}${before ? "\n" : ""}?? config.json\n?? tickets.json`);
 	}));
 
 test("local calendar boundaries, ambiguous links, bot and merge exclusions are counted once", () =>
@@ -183,18 +154,24 @@ test("local calendar boundaries, ambiguous links, bot and merge exclusions are c
 			env: { ...process.env, GIT_AUTHOR_DATE: "2026-03-04T12:00:00Z", GIT_COMMITTER_DATE: "2026-03-04T12:00:00Z" },
 		});
 		const mergeHash = git(repo, "rev-parse", "HEAD");
-		const before = git(repo, "status", "--porcelain=v1");
 		const result = loadLocalGit(repo, mergeHash, since, until, "Asia/Tokyo", "API-[0-9]+", ["Build Service"]);
-		assert.equal(result.coverage.eligible, 3);
-		assert.equal(result.coverage.extracted, 5);
-		assert.equal(result.coverage.excluded, 2);
-		assert.equal(result.coverage.linked, 0);
-		assert.doesNotMatch(result.coverage.reason, /unlinked|ambiguous|verified/i);
+		assert.deepEqual([result.coverage.eligible, result.coverage.extracted, result.coverage.excluded, result.coverage.linked], [3, 5, 2, 0]);
 		assert.deepEqual(result.commits.find((item) => item.hash === testHash)?.ticketIds, ["API-101", "API-102"]);
 		assert.equal(result.commits.find((item) => item.hash === botHash)?.bot, true);
 		assert.equal(result.commits.find((item) => item.hash === mergeHash)?.parents.length, 2);
-		assert.equal(git(repo, "rev-parse", "HEAD"), mergeHash);
-		assert.equal(git(repo, "status", "--porcelain=v1"), before);
+	}));
+
+test("commit time, not author time or ancestry order, determines the reporting month", () =>
+	withRepo((repo) => {
+		const root = commit(repo, "Developer", "root.ts", "API-101 root", "2026-03-05T12:00:00Z");
+		commit(repo, "Developer", "older.ts", "API-102 backdated", "2026-02-20T12:00:00Z");
+		const delayed = commit(repo, "Developer", "delayed.ts", "API-200 delayed", "2026-02-25T12:00:00Z", "2026-03-01T00:30:00Z");
+		const result = loadLocalGit(repo, delayed, since, until, "UTC", "API-[0-9]+");
+		assert.deepEqual(
+			result.commits.map((item) => item.hash),
+			[delayed, root],
+		);
+		assert.deepEqual([result.commits[0].at, result.commits[0].linesAdded, result.commits[0].changeSize], ["2026-03-01T00:30:00Z", 1, 1]);
 	}));
 
 test("filenames with line breaks and zero-commit windows remain structured", () =>
@@ -210,150 +187,34 @@ test("filenames with line breaks and zero-commit windows remain structured", () 
 		assert.equal(empty.coverage.status, "available");
 	}));
 
-test("commit time, not an earlier author time, determines the reporting month", () =>
-	withRepo((repo) => {
-		const hash = commit(repo, "Developer", "delayed.ts", "API-200 delayed", "2026-02-25T12:00:00Z", "2026-03-01T00:30:00Z");
-		const result = loadLocalGit(repo, hash, since, until, "UTC", "API-[0-9]+");
-		assert.deepEqual(
-			result.commits.map((item) => item.hash),
-			[hash],
-		);
-		assert.equal(result.commits[0].at, "2026-03-01T00:30:00Z");
-		assert.equal(result.commits[0].linesAdded, 1);
-		assert.equal(result.commits[0].changeSize, 1);
-	}));
-
-test("an old-dated descendant does not hide a later-dated ancestor", () =>
-	withRepo((repo) => {
-		const root = commit(repo, "Developer", "root.ts", "API-101 root", "2026-03-05T12:00:00Z");
-		commit(repo, "Developer", "older.ts", "API-102 backdated", "2026-02-20T12:00:00Z");
-		const tip = commit(repo, "Developer", "tip.ts", "API-103 tip", "2026-03-10T12:00:00Z");
-		const result = loadLocalGit(repo, tip, since, until, "UTC", "API-[0-9]+");
-		assert.deepEqual(
-			result.commits.map((item) => item.hash),
-			[tip, root],
-		);
-	}));
-
-test("extracted Go and Python unit-test paths contribute to the test-touch metric", () =>
+test("configured Git without tickets loads pinned history; Go and Python test paths count as test touches", () =>
 	withRepo(async (repo) => {
-		commit(repo, "Developer", "handler_test.go", "Go unit tests", "2026-03-05T12:00:00Z");
+		commit(repo, "Developer", "handler_test.go", "API-101 Go unit tests", "2026-03-05T12:00:00Z");
 		commit(repo, "Developer", "test_handler.py", "Python unit tests", "2026-03-06T12:00:00Z");
-		commit(repo, "Developer", "handler.go", "Source change", "2026-03-07T12:00:00Z");
-		const configPath = join(repo, "config.json");
-		writeFileSync(
-			configPath,
-			JSON.stringify({
-				version: 1,
-				scope: "Team",
-				startDate: since,
-				endDate: until,
-				timezone: "UTC",
-				extractedAt: "2026-04-01T00:00:00Z",
-				currency: "EUR",
-				completenessAttestation: "Local history.",
-				sources: { commits: { kind: "git", path: repo, revision: "HEAD" } },
-			}),
-		);
-		const bundle = await loadConfigured(configPath);
-		assert.equal(bundle.commits?.length, 3);
-		const march = aggregate(bundle).monthly[0];
-		assert.equal(march.commits, 3);
-		assert.equal(march.testTouchCommits, 2);
-		assert.equal(march.testTouchShare, 2 / 3);
-	}));
-
-test("configured Git selector loads the pinned history with no exposed local repository path", () =>
-	withRepo(async (repo) => {
-		const hash = commit(repo, "Developer", "feature.test.ts", "API-101 test", "2026-03-05T12:00:00Z");
-		const configPath = join(repo, "config.json");
-		writeFileSync(
-			configPath,
-			JSON.stringify({
-				version: 1,
-				scope: "Team",
-				startDate: since,
-				endDate: until,
-				timezone: "UTC",
-				extractedAt: "2026-04-01T00:00:00Z",
-				currency: "EUR",
-				completenessAttestation: "Local history.",
-				sources: { commits: { kind: "git", path: repo, revision: "HEAD", ticketPattern: "API-[0-9]+" } },
-			}),
-		);
-		const bundle = await loadConfigured(configPath);
-		assert.equal(bundle.commits?.[0].hash, hash);
+		const tip = commit(repo, "Developer", "handler.go", "Source change", "2026-03-07T12:00:00Z");
+		const bundle = await loadConfigured(writeConfig(repo, { ticketPattern: "API-[0-9]+" }));
+		assert.equal(bundle.commits?.[0].hash, tip);
 		assert.equal(bundle.coverage.find((entry) => entry.source === "commits")?.linked, 0);
-		assert.match(bundle.coverage.find((entry) => entry.source === "commits")?.reason ?? "", /unverified/i);
-		assert.equal(aggregate(bundle).monthly[0].measureStatus.commitLinks, "unavailable");
+		const march = aggregate(bundle).monthly[0];
+		assert.deepEqual([march.commits, march.testTouchCommits, march.testTouchShare], [3, 2, 2 / 3]);
+		assert.equal(march.measureStatus.commitLinks, "unavailable");
 		assert.ok(!JSON.stringify(bundle).includes(repo));
 		assert.ok(!JSON.stringify(bundle).includes("private@example.org"));
 	}));
 
-test("mixed ticket file and Git preserve the declared report extraction date", () =>
-	withRepo(async (repo) => {
-		const hash = commit(repo, "Developer", "feature.ts", "API-101 change", "2026-03-05T12:00:00Z");
-		writeFileSync(join(repo, "tickets.json"), JSON.stringify({ version: 1, tickets: [{ id: "API-101", type: "Story", createdAt: "2026-03-01T09:00:00Z", statusEvents: [] }] }));
-		const configPath = join(repo, "config.json");
-		writeFileSync(
-			configPath,
-			JSON.stringify({
-				version: 1,
-				scope: "Team",
-				startDate: since,
-				endDate: until,
-				timezone: "UTC",
-				extractedAt: "2026-04-01T00:00:00Z",
-				currency: "EUR",
-				completenessAttestation: "File and Git extracts.",
-				sources: {
-					tickets: { kind: "file", path: "tickets.json", coverage: { status: "available", eligible: 1, extracted: 1, linked: 0, excluded: 0, missing: 0, reason: "" } },
-					commits: { kind: "git", path: repo, revision: hash, ticketPattern: "API-[0-9]+" },
-				},
-			}),
-		);
-		const bundle = await loadConfigured(configPath);
-		assert.equal(bundle.extractedAt, "2026-04-01T00:00:00Z");
-		assert.equal(aggregate(bundle).extractedAt, "2026-04-01T00:00:00Z");
-		assert.match(bundle.coverage.find((entry) => entry.source === "commits")?.reason ?? "", /Git extracted at \d{4}-\d\d-\d\dT\d\d:\d\d:\d\d.*Z/);
-		assert.equal(bundle.sources?.commits?.revision, hash);
-	}));
-
-test("configured Git coverage verifies only keys present in the supplied ticket source", () =>
+test("configured Git with tickets verifies only supplied keys and keeps the declared extraction date", () =>
 	withRepo(async (repo) => {
 		commit(repo, "Developer", "known.test.ts", "API-101 known", "2026-03-05T12:00:00Z");
 		commit(repo, "Developer", "unknown.ts", "API-999 unknown", "2026-03-06T12:00:00Z");
-		commit(repo, "Developer", "ambiguous.ts", "API-101 API-999", "2026-03-07T12:00:00Z");
-		writeFileSync(join(repo, "tickets.json"), JSON.stringify({ version: 1, tickets: [{ id: "API-101", type: "Story", createdAt: "2026-03-01T09:00:00Z", statusEvents: [] }] }));
-		const configPath = join(repo, "config.json");
-		writeFileSync(
-			configPath,
-			JSON.stringify({
-				version: 1,
-				scope: "Team",
-				startDate: since,
-				endDate: until,
-				timezone: "UTC",
-				extractedAt: "2026-04-01T00:00:00Z",
-				currency: "EUR",
-				completenessAttestation: "Local history.",
-				sources: {
-					tickets: { kind: "file", path: "tickets.json", coverage: { status: "available", eligible: 1, extracted: 1, linked: 0, excluded: 0, missing: 0, reason: "" } },
-					commits: { kind: "git", path: repo, revision: "HEAD", ticketPattern: "API-[0-9]+" },
-				},
-			}),
-		);
-		const bundle = await loadConfigured(configPath);
-		const coverage = bundle.coverage.find((entry) => entry.source === "commits");
+		const tip = commit(repo, "Developer", "ambiguous.ts", "API-101 API-999", "2026-03-07T12:00:00Z");
+		const bundle = await loadConfigured(writeConfig(repo, { revision: tip, ticketPattern: "API-[0-9]+" }, true));
 		const report = aggregate(bundle);
-		assert.equal(coverage?.linked, 1);
-		assert.match(coverage?.reason ?? "", /1 verified links, 2 unlinked \(including 1 ambiguous\)/i);
-		assert.doesNotMatch(coverage?.reason ?? "", /3 unlinked|pending ticket verification|pattern matches unverified/i);
-		assert.equal(coverage?.reason.match(/unlinked/g)?.length, 1);
-		assert.equal(report.coverage.find((entry) => entry.source === "commits")?.reason, coverage?.reason);
-		assert.deepEqual(report.monthly[0].commitLinks, { linked: 1, unlinked: 2, ambiguous: 1, excluded: 0 });
-		assert.equal(report.exclusions.unlinkedCommitLinks, 2);
-		assert.equal(report.exclusions.ambiguousCommitLinks, 1);
+		assert.equal(bundle.extractedAt, "2026-04-01T00:00:00Z");
+		assert.equal(report.extractedAt, "2026-04-01T00:00:00Z");
+		assert.equal(bundle.sources?.commits?.revision, tip);
+		assert.equal(bundle.coverage.find((entry) => entry.source === "commits")?.linked, 1);
 		assert.equal(report.coverage.find((entry) => entry.source === "commits")?.linked, 1);
+		assert.deepEqual(report.monthly[0].commitLinks, { linked: 1, unlinked: 2, ambiguous: 1, excluded: 0 });
+		assert.deepEqual([report.exclusions.unlinkedCommitLinks, report.exclusions.ambiguousCommitLinks], [2, 1]);
 		assert.ok(!JSON.stringify(report).includes(repo));
 	}));

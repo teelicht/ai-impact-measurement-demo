@@ -15,8 +15,7 @@ const compact = (value: number | null): string =>
 	value === null ? "Unavailable" : new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(value);
 const money = (value: number | null, currency: string): string => (value === null ? "Unavailable" : `${text(currency)} ${number(value)}`);
 const percent = (value: number | null): string => (value === null ? "Unavailable" : `${number(value * 100)}%`);
-const instant = (value: string): string =>
-	Number.isNaN(Date.parse(value)) ? text(value) : `${new Date(value).toISOString().slice(0, 16).replace("T", " ")} UTC`;
+const instant = (value: string): string => (Number.isNaN(Date.parse(value)) ? text(value) : `${new Date(value).toISOString().slice(0, 16).replace("T", " ")} UTC`);
 const cell = (value: string): string => `<td>${value}</td>`;
 const headingCell = (value: string): string => `<th scope="row">${text(value)}</th>`;
 const status = (value: Coverage["status"]): string => `<span class="status status-${text(value)}">${text(value)}</span>`;
