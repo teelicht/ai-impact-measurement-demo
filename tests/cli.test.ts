@@ -19,7 +19,7 @@ test("default CLI writes one synthetic report as HTML and evidence JSON", () => 
 		assert.match(html, /synthetic/i);
 		assert.match(
 			html,
-			/<h2>Overview<\/h2>[\s\S]*Not assessed in this report:<\/strong> lead time, human effort, total AI cost and ROI\. Recorded tool spend is not total AI cost\.[\s\S]*id="profile"/,
+			/<h2>Report profile<\/h2>[\s\S]*Not assessed in this report:<\/strong> lead time, human effort, total AI cost and ROI\. Recorded tool spend is not total AI cost\.[\s\S]*id="impact"/,
 		);
 		assert.doesNotMatch(html, /https?:\/\/(?:[^"\s]*jira|[^"\s]*git(?:hub|lab))/i);
 		const rows = evidence.monthly;

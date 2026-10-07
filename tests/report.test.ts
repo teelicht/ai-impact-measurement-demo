@@ -33,8 +33,8 @@ test("the default overview is a synthetic report profile, not a decision verdict
 	assert.match(html, /<title>AI Impact Report \| Fictional API team<\/title>/);
 	assert.match(html, /<h1>AI Impact Report<\/h1><p class="sub">Fictional API team/);
 	assert.equal(Object.hasOwn(view, "decision"), false);
-	assert.match(html, /<h2>Overview<\/h2>[\s\S]*Team and service[\s\S]*AI use and context[\s\S]*Data Sources/);
-	assert.match(html, /<h2>Report profile<\/h2>/);
+	assert.match(html, /<h2>Report profile<\/h2>[\s\S]*Team and service[\s\S]*AI use and context[\s\S]*Data Sources[\s\S]*Question[\s\S]*Included work[\s\S]*Excluded work/);
+	assert.doesNotMatch(html, /<h2>Overview<\/h2>|href="#overview"|Resources and controls/);
 	assert.match(html, /Engineering lead \(fictional\)|Engineering lead/);
 	assert.match(html, /Synthetic API commit history/);
 	assert.match(html, /2026-09-01/);
@@ -44,7 +44,7 @@ test("the default overview is a synthetic report profile, not a decision verdict
 	assert.match(html, /API.team ROI[\s\S]*unassessed/i);
 	assert.match(html, /24[\s\S]*24/);
 	assert.match(html, /M1.M6[\s\S]*M7.M12/);
-	for (const heading of ["Overview", "Report profile", "Utilization and Cost", "Impact", "Cost", "Evidence", "Definitions", "Monthly ledger", "Next actions"]) {
+	for (const heading of ["Report profile", "Utilization and Cost", "Impact", "Cost", "Evidence", "Definitions", "Monthly ledger", "Next actions"]) {
 		assert.match(html, new RegExp(`<h[1-6][^>]*>${heading}</h[1-6]>`, "i"));
 	}
 	assert.ok(html.indexOf('id="actions"') > html.indexOf('id="evidence"'));
@@ -154,9 +154,8 @@ test("dashboard follows the blueprint hierarchy with a stacked chart and print l
 	assert.doesNotMatch(html, /<a\s+[^>]*href="https?:\/\//i);
 });
 
-test("overview comes first and SVG charts expose a group rather than a hidden image", () => {
+test("report profile comes first and SVG charts expose a group rather than a hidden image", () => {
 	const html = renderHtml(buildReport(loadSynthetic()));
-	assert.ok(html.indexOf("<h2>Overview</h2>") < html.indexOf('id="issue-volume"'));
 	assert.ok(html.indexOf("<h2>Report profile</h2>") < html.indexOf('id="issue-volume"'));
 	assert.match(html, /id="type-chart" role="group"/);
 	assert.doesNotMatch(html, /id="type-chart" role="img"/);
@@ -169,6 +168,7 @@ test("configured reports do not inherit fictional context or confuse updates wit
 	assert.match(html, /Team and service[\s\S]*Not supplied/);
 	assert.match(html, /AI use and context[\s\S]*Not supplied/);
 	assert.match(html, /Data Sources[\s\S]*Not supplied/);
+	assert.match(html, /Question<\/h3><p>Not supplied<\/p><p class="context-secondary">(Compares |No before\/after comparison)/);
 	assert.doesNotMatch(html, /Synthetic API commit history|Agent-supported endpoint preparation|2026-11-01<\/dd>/);
 	assert.match(html, /Data extracted[^<]*2026-11-01/);
 	assert.doesNotMatch(html, /Synthetic examples illustrate inclusion/);
