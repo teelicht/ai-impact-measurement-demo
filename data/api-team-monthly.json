@@ -28,11 +28,11 @@
     { "month": "M4", "approved": 24, "stories": 15, "commits": 100, "testTouches": 16, "bugs": 4, "tokensMillions": 56, "subscriptionEur": 210, "consumptionEur": 120 },
     { "month": "M5", "approved": 19, "stories": 8, "commits": 100, "testTouches": 14, "bugs": 5, "tokensMillions": 46, "subscriptionEur": 210, "consumptionEur": 100 },
     { "month": "M6", "approved": 23, "stories": 14, "commits": 100, "testTouches": 19, "bugs": 3, "tokensMillions": 56, "subscriptionEur": 210, "consumptionEur": 120 },
-    { "month": "M7", "approved": 24, "stories": 16, "commits": 104, "testTouches": 20, "bugs": 3, "tokensMillions": 70, "subscriptionEur": 210, "consumptionEur": 150 },
-    { "month": "M8", "approved": 27, "stories": 15, "commits": 108, "testTouches": 22, "bugs": 5, "tokensMillions": 86, "subscriptionEur": 210, "consumptionEur": 175 },
-    { "month": "M9", "approved": 25, "stories": 17, "commits": 106, "testTouches": 24, "bugs": 4, "tokensMillions": 88, "subscriptionEur": 210, "consumptionEur": 180 },
-    { "month": "M10", "approved": 30, "stories": 18, "commits": 114, "testTouches": 25, "bugs": 3, "tokensMillions": 114, "subscriptionEur": 210, "consumptionEur": 220 },
-    { "month": "M11", "approved": 28, "stories": 13, "commits": 112, "testTouches": 27, "bugs": 5, "tokensMillions": 115, "subscriptionEur": 210, "consumptionEur": 220 },
-    { "month": "M12", "approved": 34, "stories": 21, "commits": 120, "testTouches": 32, "bugs": 4, "tokensMillions": 150, "subscriptionEur": 210, "consumptionEur": 270 }
+    { "month": "M7", "approved": 24, "stories": 16, "commits": 104, "testTouches": 20, "bugs": 3, "tokensMillions": 140, "subscriptionEur": 210, "consumptionEur": 270 },
+    { "month": "M8", "approved": 27, "stories": 15, "commits": 108, "testTouches": 22, "bugs": 5, "tokensMillions": 200, "subscriptionEur": 210, "consumptionEur": 350 },
+    { "month": "M9", "approved": 25, "stories": 17, "commits": 106, "testTouches": 24, "bugs": 4, "tokensMillions": 230, "subscriptionEur": 210, "consumptionEur": 380 },
+    { "month": "M10", "approved": 30, "stories": 18, "commits": 114, "testTouches": 25, "bugs": 3, "tokensMillions": 310, "subscriptionEur": 210, "consumptionEur": 480 },
+    { "month": "M11", "approved": 28, "stories": 13, "commits": 112, "testTouches": 27, "bugs": 5, "tokensMillions": 330, "subscriptionEur": 210, "consumptionEur": 495 },
+    { "month": "M12", "approved": 34, "stories": 21, "commits": 120, "testTouches": 32, "bugs": 4, "tokensMillions": 440, "subscriptionEur": 210, "consumptionEur": 615 }
   ]
 }

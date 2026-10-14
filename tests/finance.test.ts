@@ -43,10 +43,10 @@ test("monthly rollups keep totals without an inferred breakdown and reject mixed
 	const source = loadSynthetic();
 	const records = source.usage ?? [];
 	const march = summarizeUsageAndCost(source).monthly[6];
-	assert.equal(march.tokens, 70_000_000);
-	assert.equal(march.toolSpend, 360);
-	assert.deepEqual(march.billingCategories, { subscription: 210, consumption: 150 });
-	assert.equal(march.toolSpendPerApprovedParent, 15);
+	assert.equal(march.tokens, 140_000_000);
+	assert.equal(march.toolSpend, 480);
+	assert.deepEqual(march.billingCategories, { subscription: 210, consumption: 270 });
+	assert.equal(march.toolSpendPerApprovedParent, 20);
 	for (const key of ["inputTokens", "cachedInputTokens", "outputTokens", "byModel", "attempts", "workItemLinks"] as const) assert.equal(march[key], null, key);
 	const first = records[0];
 	assert.ok(first && isMonthlyUsage(first));
@@ -98,7 +98,7 @@ test("missing, partial or empty sources stay unknown rather than zero", () => {
 		...source,
 		coverage: source.coverage.map((entry) => (entry.source === "tickets" ? { ...entry, status: "partial" as const, reason: "Missing tickets." } : entry)),
 	});
-	assert.equal(partialTickets.monthly[6].toolSpend, 360);
+	assert.equal(partialTickets.monthly[6].toolSpend, 480);
 	assert.equal(partialTickets.monthly[6].toolSpendPerApprovedParent, null);
 
 	const empty = summarizeUsageAndCost({ ...source, usage: [], charges: [] });

@@ -161,9 +161,9 @@ function tokenApprovedComparison(monthly: OperationalMonth[], periods: Operation
 	const baselineLabel = base ? `indexed to ${base.label} (${base.month}) = 100` : "index unavailable: no month has positive values for both measures";
 	return (
 		`<figure class="chart-card"><figcaption class="chart-head"><span class="chart-title">Token use vs approved Stories and Tasks</span>` +
-		`<span class="chart-hint">index, log scale</span></figcaption>` +
+		`<span class="chart-hint">two axes, from zero</span></figcaption>` +
 		`<div class="chart" data-comparison="tokens-approved" data-base-month="${text(base?.month ?? "")}"></div>` +
-		`<div class="legend"><span><i class="raw"></i>Token use</span><span><i class="comparison-approved"></i>Approved Stories and Tasks</span>` +
+		`<div class="legend"><span><i class="raw"></i>Token use (left axis)</span><span><i class="comparison-approved"></i>Approved Stories and Tasks (right axis)</span>` +
 		(periods.length === 2 ? `<span><i class="split-marker"></i>${synthetic ? "M7 split" : "period boundary"}</span>` : "") +
 		`</div><details><summary>Token use vs approved Stories and Tasks data table</summary><div class="table-shell"><table>` +
 		`<caption>Token use vs approved Stories and Tasks by month; ${baselineLabel}</caption>` +
@@ -375,7 +375,7 @@ main.shell{max-width:1320px;margin:0 auto;padding:30px 24px 72px}section{margin:
 <section id="profile"><h2>Report profile</h2><div class="context-grid"><div class="context-panel"><h3>Team and service</h3><p>${supplied(context?.description)}</p></div><div class="context-panel"><h3>AI use and context</h3><p>${supplied(context?.aiUse)}</p><p class="context-secondary">${supplied(context?.concurrentChanges)}</p></div><div class="context-panel"><h3>Data Sources</h3><div class="repo-chips">${repositoryLabels}</div></div><div class="context-panel"><h3>Question</h3><p>${supplied(context?.question)}</p>${comparisonNote ? `<p class="context-secondary">${comparisonNote}</p>` : ""}</div><div class="context-panel"><h3>Included work</h3><p>${supplied(context?.includedWork)}</p></div><div class="context-panel"><h3>Excluded work</h3><p>${supplied(context?.excludedWork)}</p></div></div><p class="scope-note"><strong>Not assessed in this report:</strong> ${notAssessed}</p><div class="kpis"><div class="kpi"><div class="kpi-label">Months covered</div><div class="kpi-value">${number(report.monthly.length)}</div><div class="kpi-meta">${text(period)}</div></div><div class="kpi"><div class="kpi-label">Approved Stories and Tasks</div><div class="kpi-value">${total("approvedParents")}</div><div class="kpi-meta">first release approval</div></div><div class="kpi"><div class="kpi-label">Git commits</div><div class="kpi-value">${total("commits")}</div><div class="kpi-meta">eligible, non-merge</div></div><div class="kpi"><div class="kpi-label">Token use</div><div class="kpi-value">${total("tokens", compact)}</div><div class="kpi-meta">input + output tokens</div></div><div class="kpi"><div class="kpi-label">Recorded tool spend</div><div class="kpi-value">${recordedSpend === "Unavailable" ? recordedSpend : `${recordedSpend} ${text(report.currency)}`}</div><div class="kpi-meta">not total AI cost</div></div>${report.sourceKind === "synthetic" && splitMonth ? `<div class="kpi"><div class="kpi-label">Agent workflow from</div><div class="kpi-value">${text(splitMonth)}</div><div class="kpi-meta">synthetic M7 boundary</div></div>` : ""}</div></section>
 <section id="impact"><div class="section-head"><h2>Impact</h2><p>Delivery and quality signals, not AI effects.</p></div><div class="chart-grid">${trend(report.monthly, "approvedParents", "Approved Stories and Tasks", "items", "approvedParents", report.periods, report.sourceKind === "synthetic")}<div class="chart-card fit-table">${periodTable(impactRows, "Accepted output, incoming bugs and repository activity", report.periods)}</div></div>
 </section>
-<section id="utilization"><div class="section-head"><h2>Utilization and Cost</h2><p>Token consumption, approved Stories and Tasks and recorded tool charges, by month. The comparison indexes tokens and approved items to the first month with positive values for both measures (100) on a log scale, so equal slopes mean equal growth rates. Sharing a month does not link tokens to a task or establish an AI effect, and recorded ${text(report.currency)} tool spend is not total AI cost.</p></div><div class="chart-grid">${trend(report.monthly, "tokens", "Input + output tokens", "millions", "tokens", report.periods, report.sourceKind === "synthetic", 1_000_000, usageComposition)}${tokenApprovedComparison(report.monthly, report.periods, report.sourceKind === "synthetic")}</div>
+<section id="utilization"><div class="section-head"><h2>Utilization and Cost</h2><p>Token consumption, approved Stories and Tasks and recorded tool charges, by month. The comparison plots tokens and approved items on separate axes that both start at zero, so each line's height is proportional to its value and relative growth stays comparable; the data table adds an index to the first month with positive values for both measures (100). Sharing a month does not link tokens to a task or establish an AI effect, and recorded ${text(report.currency)} tool spend is not total AI cost.</p></div><div class="chart-grid">${trend(report.monthly, "tokens", "Input + output tokens", "millions", "tokens", report.periods, report.sourceKind === "synthetic", 1_000_000, usageComposition)}${tokenApprovedComparison(report.monthly, report.periods, report.sourceKind === "synthetic")}</div>
 <h3>Period comparison</h3>${periodTable(usageRows, "Combined period usage", report.periods)}
 <h3 id="cost">Cost</h3><div class="chart-grid">${trend(report.monthly, "toolSpend", "Recorded tool charges", report.currency, "toolSpend", report.periods, report.sourceKind === "synthetic")}<div class="chart-card fit-table">${periodTable(costRows, "Recorded consumption, subscriptions and other charges", report.periods)}</div></div><p class="note full-width">Recorded charges include subscriptions and other billed items; monthly token totals alone cannot explain them or establish a per-token price.</p><details class="cost-composition"><summary>Monthly cost composition and token use</summary>${report.sourceKind === "synthetic" ? '<p class="note">The subscription and consumption split is illustrative, not a reconstructed invoice or a price computed from tokens. Model, input/output and cache breakdowns are unavailable for this case.</p>' : ""}<div class="table-scroll"><table><caption>Monthly billing mix, token use and spend per approved Story or Task</caption><thead><tr><th scope="col">Month</th><th scope="col">Tokens (millions)</th><th scope="col">Charge categories</th><th scope="col">Recorded tool charges (${text(report.currency)})</th><th scope="col">Spend / approved Story or Task (${text(report.currency)})</th></tr></thead><tbody>${report.monthly
 		.map(
@@ -475,38 +475,35 @@ function drawTrend(container){
 function drawComparison(container){
   const base=months.find(row=>row.month===container.dataset.baseMonth);
   const baseApproved=base?.measureStatus.approvedParents==='unavailable'?null:base?.approvedParents;
-  const svg=element(container,'svg',{width:'100%',height:'100%',role:'group','aria-label':'Token use and approved Stories and Tasks indexed to a shared month; data table follows'});
-  const width=Math.max(240,container.clientWidth||500),height=container.clientHeight||220,pad={left:40,right:12,top:12,bottom:28};
+  const svg=element(container,'svg',{width:'100%',height:'100%',role:'group','aria-label':'Token use (left axis) and approved Stories and Tasks (right axis), both from zero; data table follows'});
+  const width=Math.max(240,container.clientWidth||500),height=container.clientHeight||220,pad={left:44,right:36,top:12,bottom:28};
   svg.setAttribute('viewBox','0 0 '+width+' '+height);
   if(!base||!base.tokens||!baseApproved){element(svg,'text',{x:20,y:40,fill:'#a8b5c3'},'Comparison unavailable');return}
   const series=[
-    {label:'Token use',color:'#4aa3ff',unit:'million tokens',coverage:'tokens',baseline:base.tokens,
-      raw:months.map(row=>row.measureStatus.tokens==='unavailable'?null:row.tokens===null?null:row.tokens/1_000_000),scale:1_000_000},
-    {label:'Approved Stories and Tasks',color:'#56d4dd',unit:'items',coverage:'approvedParents',baseline:baseApproved,
-      raw:months.map(row=>row.measureStatus.approvedParents==='unavailable'?null:row.approvedParents),scale:1}
+    {label:'Token use',color:'#4aa3ff',unit:'million tokens',coverage:'tokens',baseline:base.tokens/1_000_000,side:'left',format:value=>compact.format(value*1_000_000),
+      raw:months.map(row=>row.measureStatus.tokens==='unavailable'?null:row.tokens===null?null:row.tokens/1_000_000)},
+    {label:'Approved Stories and Tasks',color:'#56d4dd',unit:'items',coverage:'approvedParents',baseline:baseApproved,side:'right',format:value=>String(value),
+      raw:months.map(row=>row.measureStatus.approvedParents==='unavailable'?null:row.approvedParents)}
   ];
-  const indexed=series.map(item=>item.raw.map(value=>value===null?null:value*item.scale/item.baseline*100));
-  const positive=indexed.flat().filter(value=>value!==null&&value>0);
-  const low=Math.min(100,...positive)/1.15,high=Math.max(100,...positive)*1.15,plotWidth=width-pad.left-pad.right,plotHeight=height-pad.top-pad.bottom;
+  const plotWidth=width-pad.left-pad.right,plotHeight=height-pad.top-pad.bottom;
   const x=index=>pad.left+(months.length===1?plotWidth/2:index*plotWidth/(months.length-1));
-  // Log scale keeps slow and fast growth readable together; zero months sit on the bottom edge.
-  const y=value=>pad.top+plotHeight*(1-Math.log(Math.max(value,low)/low)/Math.log(high/low));
-  let ticks=[];for(let decade=10**Math.floor(Math.log10(low));decade<=high;decade*=10)for(const step of [1,2,5])if(decade*step>=low&&decade*step<=high)ticks.push(decade*step);
-  if(ticks.length>7)ticks=ticks.filter(tick=>Number.isInteger(Math.log10(tick)));
-  const magnitude=10**Math.floor(Math.log10(high)),top=Math.floor(high/magnitude)*magnitude;
-  if(!ticks.length||top>ticks[ticks.length-1]*1.25)ticks.push(top);
-  for(const tick of ticks)gridLine(svg,width,pad,y(tick),compact.format(tick));
+  const niceMax=value=>{const magnitude=10**Math.floor(Math.log10(value));return Math.ceil(value/magnitude*2)/2*magnitude};
+  // Each series gets its own zero-based axis, so heights stay proportional and the flatter series is not squashed.
+  for(const item of series)item.max=niceMax(Math.max(1,...item.raw.filter(value=>value!==null))*1.08);
+  for(const ratio of [0,.25,.5,.75,1]){const y=pad.top+plotHeight*(1-ratio);
+    element(svg,'line',{x1:pad.left,y1:y,x2:width-pad.right,y2:y,stroke:'#243040',class:'grid-line'});
+    for(const item of series)element(svg,'text',{x:item.side==='left'?pad.left-5:width-pad.right+5,y:y+4,'text-anchor':item.side==='left'?'end':'start',fill:item.color,'font-size':10},item.format(+(item.max*ratio).toPrecision(3)))}
   monthLabels(svg,height,months.map(row=>row.month),x);
-  indexed.forEach((values,seriesIndex)=>{
-    const item=series[seriesIndex];
+  for(const item of series){
+    const y=value=>pad.top+plotHeight*(1-value/item.max),values=item.raw;
     for(let start=0;start<values.length;){if(values[start]===null){start++;continue}
       let end=start;while(end+1<values.length&&values[end+1]!==null)end++;
       if(end>start)element(svg,'polyline',{points:values.slice(start,end+1).map((value,index)=>x(start+index)+','+y(value)).join(' '),fill:'none',stroke:item.color,'stroke-width':2,'stroke-linejoin':'round'});
       start=end+1}
     values.forEach((value,index)=>{if(value===null)return;
       const point=element(svg,'circle',{cx:x(index),cy:y(value),r:4,fill:item.color});
-      bindTip(point,months[index].month+' '+item.label+': '+Number(item.raw[index]).toLocaleString()+' '+item.unit+' (index '+value.toFixed(1)+')'+(months[index].measureStatus[item.coverage]==='partial'?' (partial)':''))})
-  });
+      bindTip(point,months[index].month+' '+item.label+': '+value.toLocaleString()+' '+item.unit+' (index '+(value/item.baseline*100).toFixed(1)+')'+(months[index].measureStatus[item.coverage]==='partial'?' (partial)':''))})
+  }
   if(splitIndex!==null)splitLine(svg,(x(splitIndex-1)+x(splitIndex))/2,pad.top,pad.top+plotHeight)
 }
 function redraw(){drawTypeChart();for(const container of document.querySelectorAll('.chart[data-field],.chart[data-type],.chart[data-total-issues]')){container.replaceChildren();drawTrend(container)}for(const container of document.querySelectorAll('.chart[data-comparison]')){container.replaceChildren();drawComparison(container)}}

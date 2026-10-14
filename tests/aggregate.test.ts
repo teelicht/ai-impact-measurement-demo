@@ -59,26 +59,26 @@ test("synthetic monthly rows and period totals match the appendix", () => {
 			["M4", 24, 100, 16, 4, 56_000_000, 330],
 			["M5", 19, 100, 14, 5, 46_000_000, 310],
 			["M6", 23, 100, 19, 3, 56_000_000, 330],
-			["M7", 24, 104, 20, 3, 70_000_000, 360],
-			["M8", 27, 108, 22, 5, 86_000_000, 385],
-			["M9", 25, 106, 24, 4, 88_000_000, 390],
-			["M10", 30, 114, 25, 3, 114_000_000, 430],
-			["M11", 28, 112, 27, 5, 115_000_000, 430],
-			["M12", 34, 120, 32, 4, 150_000_000, 480],
+			["M7", 24, 104, 20, 3, 140_000_000, 480],
+			["M8", 27, 108, 22, 5, 200_000_000, 560],
+			["M9", 25, 106, 24, 4, 230_000_000, 590],
+			["M10", 30, 114, 25, 3, 310_000_000, 690],
+			["M11", 28, 112, 27, 5, 330_000_000, 705],
+			["M12", 34, 120, 32, 4, 440_000_000, 825],
 		],
 	);
 	assert.deepEqual(
 		report.periods.map((row) => [row.label, row.approvedParents, row.commits, row.testTouchShare, row.incomingBugs, row.tokens, row.toolSpend]),
 		[
 			["M1-M6", 126, 600, 90 / 600, 24, 294_000_000, 1900],
-			["M7-M12", 168, 664, 150 / 664, 24, 623_000_000, 2475],
+			["M7-M12", 168, 664, 150 / 664, 24, 1_650_000_000, 3850],
 		],
 	);
 	assert.equal(report.comparisons.approvedParentsRelativeChange, 168 / 126 - 1);
 	assert.equal(report.comparisons.testTouchSharePercentagePoints, (150 / 664 - 90 / 600) * 100);
 	const march = report.monthly[6];
-	assert.deepEqual(march.billingCategories, { subscription: 210, consumption: 150 });
-	assert.equal(march.toolSpendPerApprovedParent, 15);
+	assert.deepEqual(march.billingCategories, { subscription: 210, consumption: 270 });
+	assert.equal(march.toolSpendPerApprovedParent, 20);
 	assert.equal(march.usage?.byModel, null);
 	assert.equal(report.totalAiCost, null);
 	assert.equal(report.roi, null);
